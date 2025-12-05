@@ -46,7 +46,11 @@ npm install
 ### 2. Supabaseの設定
 
 1. [Supabase](https://supabase.com/)でプロジェクトを作成
-2. プロジェクトのURLとAnon Keyを取得
+2. **重要**: SQL Editorでスキーマを実行
+   - Supabaseダッシュボードの「SQL Editor」に移動
+   - `supabase/schema.sql`の内容をコピーして実行
+   - これにより`profiles`、`friends`、`friend_requests`テーブルが作成されます
+3. プロジェクトのURLとAnon Keyを取得
    - Supabaseダッシュボードにアクセス
    - プロジェクトを選択
    - **Settings** > **API** に移動

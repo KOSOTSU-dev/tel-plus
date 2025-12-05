@@ -131,7 +131,14 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
             }
           }
 
-          if (error) throw error;
+          if (error) {
+            console.error('Profile insert error:', error);
+            // テーブルが見つからない場合は、より詳細なメッセージを表示
+            if (error.message?.includes('schema cache') || error.message?.includes('Could not find')) {
+              throw new Error('データベーステーブルが見つかりません。SupabaseのSQL Editorでschema.sqlを実行してください。');
+            }
+            throw error;
+          }
           if (data) {
             onUpdate(data);
             setFormData(dataToSave);
@@ -152,7 +159,14 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
             .select()
             .single();
 
-          if (error) throw error;
+          if (error) {
+            console.error('Profile update error:', error);
+            // テーブルが見つからない場合は、より詳細なメッセージを表示
+            if (error.message?.includes('schema cache') || error.message?.includes('Could not find')) {
+              throw new Error('データベーステーブルが見つかりません。SupabaseのSQL Editorでschema.sqlを実行してください。');
+            }
+            throw error;
+          }
           if (data) {
             onUpdate(data);
             setFormData(dataToSave);
@@ -164,7 +178,9 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
       setIsEditingIcon(false);
       setIsEditingStatus(false);
     } catch (error: any) {
-      alert('保存に失敗しました: ' + error.message);
+      console.error('Save error:', error);
+      const errorMessage = error.message || '不明なエラーが発生しました';
+      alert('保存に失敗しました: ' + errorMessage);
     } finally {
       setLoading(false);
     }
