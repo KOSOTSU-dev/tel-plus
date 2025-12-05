@@ -168,7 +168,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
   };
 
   return (
-    <div className="bg-white p-6">
+    <div className="bg-white p-6 border border-gray-200 rounded-lg">
       {!profile ? (
         <div className="text-gray-500 text-center py-4">
           プロフィールを設定してください
@@ -177,11 +177,11 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
         <>
           <div className="flex items-start gap-4 mb-4">
         {/* 緑のグラデーション背景のアイコン */}
-        <div className="w-20 h-20 rounded-lg flex items-center justify-center flex-shrink-0" style={{
+        <div className="w-20 h-20 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm" style={{
           background: 'linear-gradient(to bottom, #4ade80, #22c55e)'
         }}>
-          <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+          <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         </div>
 
@@ -276,7 +276,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
                 )}
                 <button
                   onClick={() => setIsEditingNote(true)}
-                  className="text-gray-600 hover:text-gray-800"
+                  className="text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition-colors"
                   type="button"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
