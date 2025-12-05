@@ -166,8 +166,98 @@ export default function Dashboard() {
         .order('pinned', { ascending: false })
         .order('order', { ascending: true });
 
-      if (friendsData) {
+      if (friendsData && friendsData.length > 0) {
         setFriends(friendsData as Friend[]);
+      } else {
+        // フレンドがいない場合は、サンプルフレンドのプロフィールを作成
+        // サンプルユーザーのプロフィールを作成（存在しない場合）
+        const sampleUserIds = ['sample_tanaka', 'sample_sato', 'sample_suzuki'];
+        const sampleProfiles = [
+          {
+            user_id: 'sample_tanaka',
+            username: 'tanaka',
+            nickname: '田中',
+            organization: 'サンプル',
+            phone: '',
+            public_email: '',
+            status: 'available',
+            note: '30分ご対応可能',
+            friend_code: 'TANAKA1',
+          },
+          {
+            user_id: 'sample_sato',
+            username: 'sato',
+            nickname: '佐藤',
+            organization: 'サンプル',
+            phone: '',
+            public_email: '',
+            status: 'unavailable',
+            note: '会議中',
+            friend_code: 'SATO001',
+          },
+          {
+            user_id: 'sample_suzuki',
+            username: 'suzuki',
+            nickname: '鈴木',
+            organization: 'サンプル',
+            phone: '',
+            public_email: '',
+            status: 'emergency',
+            note: '緊急のみ',
+            friend_code: 'SUZUKI1',
+          },
+        ];
+
+        // サンプルプロフィールを作成（upsert使用）
+        for (const sampleProfile of sampleProfiles) {
+          await supabase
+            .from('profiles')
+            .upsert(sampleProfile, { onConflict: 'user_id' });
+        }
+
+        // フレンド関係を作成
+        const friendRelations = [
+          {
+            user_id: user.id,
+            friend_id: 'sample_tanaka',
+            pinned: true,
+            order: 0,
+            memo: '',
+          },
+          {
+            user_id: user.id,
+            friend_id: 'sample_sato',
+            pinned: false,
+            order: 1,
+            memo: '',
+          },
+          {
+            user_id: user.id,
+            friend_id: 'sample_suzuki',
+            pinned: false,
+            order: 2,
+            memo: '',
+          },
+        ];
+
+        for (const relation of friendRelations) {
+          await supabase.from('friends').insert(relation);
+        }
+
+        // 作成したフレンドを再取得
+        const { data: newFriendsData } = await supabase
+          .from('friends')
+          .select(`
+            *,
+            friend_profile:profiles!friends_friend_id_fkey(*)
+          `)
+          .eq('user_id', user.id)
+          .order('pinned', { ascending: false })
+          .order('order', { ascending: true });
+
+        if (newFriendsData) {
+          setFriends(newFriendsData as Friend[]);
+        }
       }
 
       setLoading(false);

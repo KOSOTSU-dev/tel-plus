@@ -120,8 +120,8 @@ export default function FriendSearch() {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">フレンド検索</h2>
+    <div className="bg-gray-700 rounded-lg shadow p-6">
+      <h2 className="text-xl font-bold text-white mb-4">フレンド検索</h2>
 
       <div className="space-y-4">
         <div className="flex gap-2">
@@ -129,40 +129,48 @@ export default function FriendSearch() {
             type="text"
             value={friendCode}
             onChange={(e) => setFriendCode(e.target.value.toUpperCase().slice(0, 6))}
-            placeholder="フレンドコード（6桁）"
-            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+            placeholder="フレンドコード (6桁)"
+            className="flex-1 px-4 py-2 border border-gray-500 bg-gray-600 text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder-gray-400"
             maxLength={6}
           />
           <button
             onClick={handleSearch}
             disabled={loading}
-            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors disabled:opacity-50"
+            className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
           >
             {loading ? '検索中...' : '検索'}
           </button>
         </div>
+        
+        <div>
+          <input
+            type="text"
+            placeholder="フレンド検索(名前/状態)"
+            className="w-full px-4 py-2 border border-gray-500 bg-gray-600 text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder-gray-400"
+          />
+        </div>
 
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg text-sm">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-green-900/50 border border-green-700 text-green-200 px-4 py-3 rounded-lg text-sm">
             {success}
           </div>
         )}
 
         {searchResult && (
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+          <div className="border border-gray-500 rounded-lg p-4 space-y-3 bg-gray-600">
             <div className="flex justify-between items-start">
               <div>
-                <div className="font-bold text-lg text-gray-900 dark:text-white">
+                <div className="font-bold text-lg text-white">
                   {searchResult.nickname || '未設定'}
                 </div>
                 {searchResult.organization && (
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-sm text-gray-300">
                     {searchResult.organization}
                   </div>
                 )}
@@ -175,7 +183,7 @@ export default function FriendSearch() {
             </div>
 
             {searchResult.note && (
-              <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+              <div className="text-sm text-gray-200 whitespace-pre-wrap">
                 {searchResult.note}
               </div>
             )}
@@ -183,7 +191,7 @@ export default function FriendSearch() {
             <button
               onClick={handleSendRequest}
               disabled={loading}
-              className="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors disabled:opacity-50"
+              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50"
             >
               {loading ? '送信中...' : 'フレンド申請を送信'}
             </button>

@@ -15,6 +15,8 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [isEditingStatus, setIsEditingStatus] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const [noteValue, setNoteValue] = useState('');
   const [formData, setFormData] = useState({
     nickname: profile?.nickname || '',
     username: profile?.username || '',
@@ -38,29 +40,45 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
         status: profile.status || 'available',
         note: profile.note || '',
       });
+      setNameValue(profile.nickname || '');
+      setNoteValue(profile.note || '');
     }
   }, [profile]);
 
-  const handleSave = async () => {
+  const handleSave = async (field?: 'name' | 'note' | 'status' | 'all') => {
+    if (field === 'name' && nameValue !== formData.nickname) {
+      setFormData({ ...formData, nickname: nameValue });
+    }
+    if (field === 'note' && noteValue !== formData.note) {
+      setFormData({ ...formData, note: noteValue });
+    }
+
     setLoading(true);
     try {
+      const dataToSave = {
+        ...formData,
+        ...(field === 'name' && { nickname: nameValue }),
+        ...(field === 'note' && { note: noteValue }),
+      };
+
       if (isGuest) {
         const guestProfile: Profile = {
           id: 'guest',
           user_id: 'guest',
-          username: formData.username || 'guest',
-          nickname: formData.nickname || 'ゲスト',
-          organization: formData.organization,
-          phone: formData.phone,
-          public_email: formData.public_email,
-          status: formData.status,
-          note: formData.note,
+          username: dataToSave.username || 'guest',
+          nickname: dataToSave.nickname || 'ゲスト',
+          organization: dataToSave.organization,
+          phone: dataToSave.phone,
+          public_email: dataToSave.public_email,
+          status: dataToSave.status,
+          note: dataToSave.note,
           friend_code: profile?.friend_code || generateFriendCode(),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
         localStorage.setItem('guest_profile', JSON.stringify(guestProfile));
         onUpdate(guestProfile);
+        setFormData(dataToSave);
       } else {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
@@ -76,13 +94,13 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
               .from('profiles')
               .insert({
                 user_id: user.id,
-                username: formData.username || user.email?.split('@')[0] || '',
-                nickname: formData.nickname || '',
-                organization: formData.organization,
-                phone: formData.phone,
-                public_email: formData.public_email,
-                status: formData.status,
-                note: formData.note,
+                username: dataToSave.username || user.email?.split('@')[0] || '',
+                nickname: dataToSave.nickname || '',
+                organization: dataToSave.organization,
+                phone: dataToSave.phone,
+                public_email: dataToSave.public_email,
+                status: dataToSave.status,
+                note: dataToSave.note,
                 friend_code: friendCode,
               })
               .select()
@@ -100,17 +118,20 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
           }
 
           if (error) throw error;
-          if (data) onUpdate(data);
+          if (data) {
+            onUpdate(data);
+            setFormData(dataToSave);
+          }
         } else {
           const { data, error } = await supabase
             .from('profiles')
             .update({
-              nickname: formData.nickname,
-              organization: formData.organization,
-              phone: formData.phone,
-              public_email: formData.public_email,
-              status: formData.status,
-              note: formData.note,
+              nickname: dataToSave.nickname,
+              organization: dataToSave.organization,
+              phone: dataToSave.phone,
+              public_email: dataToSave.public_email,
+              status: dataToSave.status,
+              note: dataToSave.note,
               updated_at: new Date().toISOString(),
             })
             .eq('id', profile.id)
@@ -118,7 +139,10 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
             .single();
 
           if (error) throw error;
-          if (data) onUpdate(data);
+          if (data) {
+            onUpdate(data);
+            setFormData(dataToSave);
+          }
         }
       }
       setIsEditingName(false);
@@ -156,109 +180,125 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
   return (
     <div className="bg-white p-6">
       <div className="flex items-start gap-4 mb-4">
-        <div className="w-20 h-20 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+        {/* 緑のグラデーション背景のアイコン */}
+        <div className="w-20 h-20 rounded-lg flex items-center justify-center flex-shrink-0" style={{
+          background: 'linear-gradient(to bottom, #4ade80, #22c55e)'
+        }}>
           <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
           </svg>
         </div>
-        <div className="flex-1">
-          {isEditingName ? (
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={formData.nickname}
-                onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
-                onBlur={handleSave}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSave();
-                  }
+              {isEditingName ? (
+                <input
+                  type="text"
+                  value={nameValue}
+                  onChange={(e) => setNameValue(e.target.value)}
+                  onBlur={() => handleSave('name')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSave('name');
+                    }
+                  }}
+                  className="text-2xl font-bold border-b-2 border-green-500 focus:outline-none"
+                  autoFocus
+                />
+              ) : (
+                <>
+                  <span className="text-2xl font-bold text-gray-900">{profile.nickname || '未設定'}</span>
+                  <button
+                    onClick={() => setIsEditingName(true)}
+                    className="text-gray-600 hover:text-gray-800"
+                    type="button"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                </>
+              )}
+            </div>
+            <div className="text-sm text-gray-500 font-mono">{profile.friend_code}</div>
+          </div>
+
+          {/* ステータスボタンとノートの行 */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {isEditingStatus ? (
+              <select
+                value={formData.status}
+                onChange={(e) => {
+                  setFormData({ ...formData, status: e.target.value as UserStatus });
+                  handleSave('status');
                 }}
-                className="text-xl font-bold border-b-2 border-green-500 focus:outline-none"
+                className={`px-3 py-1.5 rounded text-white font-medium border-0 focus:outline-none ${statusColors[formData.status]}`}
                 autoFocus
-              />
-              <button onClick={handleSave} className="text-gray-400 hover:text-gray-600">✓</button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold">{profile.nickname || '未設定'}</span>
-              <button
-                onClick={() => setIsEditingName(true)}
-                className="text-gray-400 hover:text-gray-600 text-sm"
               >
-                ✏️
+                <option value="available">対応可</option>
+                <option value="unavailable">不可</option>
+                <option value="emergency">緊急のみ</option>
+              </select>
+            ) : (
+              <button
+                onClick={() => setIsEditingStatus(true)}
+                className={`px-3 py-1.5 rounded text-white font-medium flex items-center gap-2 ${statusColors[profile.status]}`}
+                type="button"
+              >
+                <span className="w-2 h-2 bg-white rounded-full"></span>
+                <span>{statusLabels[profile.status]}</span>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
-            </div>
-          )}
-          <div className="text-sm text-gray-600 mt-1 font-mono">{profile.friend_code}</div>
+            )}
+
+            {isEditingNote ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={noteValue}
+                  onChange={(e) => setNoteValue(e.target.value)}
+                  onBlur={() => handleSave('note')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSave('note');
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-gray-100 rounded border-b-2 border-green-500 focus:outline-none"
+                  placeholder="30分後対応可能など"
+                  autoFocus
+                />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                {profile.note ? (
+                  <span className="px-3 py-1.5 bg-gray-100 rounded text-gray-700">{profile.note}</span>
+                ) : (
+                  <span className="px-3 py-1.5 bg-gray-100 rounded text-gray-400">30分後対応可能など</span>
+                )}
+                <button
+                  onClick={() => setIsEditingNote(true)}
+                  className="text-gray-600 hover:text-gray-800"
+                  type="button"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="mb-4">
-        {isEditingStatus ? (
-          <select
-            value={formData.status}
-            onChange={(e) => {
-              setFormData({ ...formData, status: e.target.value as UserStatus });
-              handleSave();
-            }}
-            className={`px-3 py-1 rounded text-white font-medium border-0 focus:outline-none ${statusColors[formData.status]}`}
-            autoFocus
-          >
-            <option value="available">対応可</option>
-            <option value="unavailable">不可</option>
-            <option value="emergency">緊急のみ</option>
-          </select>
-        ) : (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsEditingStatus(true)}
-              className={`px-3 py-1 rounded text-white font-medium ${statusColors[profile.status]} flex items-center gap-1`}
-            >
-              <span>●</span>
-              <span>{statusLabels[profile.status]}</span>
-              <span>▼</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div className="mb-4">
-        {isEditingNote ? (
-          <div className="flex items-start gap-2">
-            <input
-              type="text"
-              value={formData.note}
-              onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-              onBlur={handleSave}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSave();
-                }
-              }}
-              className="flex-1 border-b-2 border-green-500 focus:outline-none"
-              placeholder="30分ご対応可能など"
-              autoFocus
-            />
-            <button onClick={handleSave} className="text-gray-400 hover:text-gray-600">✓</button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <span className="text-gray-700">{profile.note || ''}</span>
-            <button
-              onClick={() => setIsEditingNote(true)}
-              className="text-gray-400 hover:text-gray-600 text-sm"
-            >
-              ✏️
-            </button>
-          </div>
-        )}
-      </div>
-
+      {/* プライバシー説明文 */}
       <div className="text-xs text-gray-500 mb-4">
         入力した所属名・電話番号・メールはフレンドに公開されます。
       </div>
 
+      {/* 入力フィールド */}
       <div className="space-y-3">
         <div className="flex items-center gap-4">
           <label className="text-sm w-20 text-gray-700">所属名</label>
@@ -266,7 +306,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
             type="text"
             value={formData.organization}
             onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-            onBlur={handleSave}
+            onBlur={() => handleSave('all')}
             placeholder="任意"
             className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-green-500"
           />
@@ -277,7 +317,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
             type="tel"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            onBlur={handleSave}
+            onBlur={() => handleSave('all')}
             placeholder="任意"
             className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-green-500"
           />
@@ -288,7 +328,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
             type="email"
             value={formData.public_email}
             onChange={(e) => setFormData({ ...formData, public_email: e.target.value })}
-            onBlur={handleSave}
+            onBlur={() => handleSave('all')}
             placeholder="任意"
             className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-green-500"
           />
