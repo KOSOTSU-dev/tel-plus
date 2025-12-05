@@ -324,7 +324,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-white">
       <header className="bg-green-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <h1 className="text-xl font-bold">電話アポ</h1>
           <div className="flex items-center gap-4">
             {!isGuest && (
@@ -361,7 +361,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 py-4">
+      <main className="max-w-[1920px] mx-auto px-2 sm:px-3 lg:px-4 py-4">
         <div className="flex flex-col gap-8">
           <div className="w-full">
             <ProfileSection
