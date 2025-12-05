@@ -145,18 +145,20 @@ export default function Dashboard() {
       }
 
       // プロフィール取得
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (profileData) {
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('プロフィールの取得に失敗しました:', profileError);
+      } else if (profileData) {
         setProfile(profileData);
       }
 
       // フレンド一覧取得
-      const { data: friendsData } = await supabase
+      const { data: friendsData, error: friendsError } = await supabase
         .from('friends')
         .select(`
           *,
@@ -165,6 +167,10 @@ export default function Dashboard() {
         .eq('user_id', user.id)
         .order('pinned', { ascending: false })
         .order('order', { ascending: true });
+
+      if (friendsError && friendsError.code !== 'PGRST116') {
+        console.error('フレンド一覧の取得に失敗しました:', friendsError);
+      }
 
       if (friendsData && friendsData.length > 0) {
         setFriends(friendsData as Friend[]);

@@ -170,8 +170,52 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
   return (
     <div className="bg-white p-6 border border-gray-200 rounded-lg">
       {!profile ? (
-        <div className="text-gray-500 text-center py-4">
-          プロフィールを設定してください
+        <div className="space-y-4">
+          <div className="text-gray-500 text-center py-2 text-sm mb-4">
+            プロフィールを設定してください
+          </div>
+          {/* 初期プロフィール作成フォーム */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-4">
+              <label className="text-sm w-20 text-gray-700">ニックネーム</label>
+              <input
+                type="text"
+                value={formData.nickname}
+                onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+                placeholder="ニックネームを入力"
+                className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-green-500"
+              />
+            </div>
+            <div className="flex items-center gap-4">
+              <label className="text-sm w-20 text-gray-700">ステータス</label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as UserStatus })}
+                className="px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-green-500"
+              >
+                <option value="available">対応可</option>
+                <option value="unavailable">不可</option>
+                <option value="emergency">緊急のみ</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-4">
+              <label className="text-sm w-20 text-gray-700">ノート</label>
+              <input
+                type="text"
+                value={formData.note}
+                onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+                placeholder="30分ご対応可能など"
+                className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-green-500"
+              />
+            </div>
+            <button
+              onClick={() => handleSave('all')}
+              disabled={loading || !formData.nickname}
+              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? '保存中...' : 'プロフィールを作成'}
+            </button>
+          </div>
         </div>
       ) : (
         <>

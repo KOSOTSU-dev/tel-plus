@@ -49,10 +49,23 @@ export default function FriendRequests() {
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      if (data) setRequests(data as FriendRequest[]);
+      if (error) {
+        // テーブルが存在しない場合はエラーを無視（開発中の場合）
+        if (error.code === 'PGRST205' || error.code === '42P01') {
+          console.warn('friend_requestsテーブルが存在しません。データベーススキーマを確認してください。');
+          setRequests([]);
+        } else {
+          throw error;
+        }
+      } else if (data) {
+        setRequests(data as FriendRequest[]);
+      }
     } catch (error: any) {
-      console.error('フレンド申請の読み込みに失敗しました:', error);
+      // エラーをコンソールに出力しない（テーブルが存在しない場合は正常な状態）
+      if (error.code !== 'PGRST205' && error.code !== '42P01') {
+        console.error('フレンド申請の読み込みに失敗しました:', error);
+      }
+      setRequests([]);
     } finally {
       setLoading(false);
     }
