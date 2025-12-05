@@ -194,7 +194,7 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
           {/* ピン留めフレンドリスト */}
           {pinnedFriends.length > 0 && (
             <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 bg-yellow-50 border border-yellow-200 rounded-lg p-1">
                 {pinnedFriends.map((friend) => (
                   <FriendListItem
                     key={friend.id}
