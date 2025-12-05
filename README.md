@@ -1,20 +1,23 @@
 # 電話帳プラス
 
-電話対応の可否や具体的な対応状況をフレンドと共有し、並び替えやピン留めで連絡先を管理しやすくするWebアプリケーションです。
+電話対応の可否や具体的な対応状況をフレンドと共有し、並び替えやピン留めで連絡先を管理しやすくする Web アプリケーションです。
 
 ## 機能
 
 ### 基本機能
+
 - メール+パスワード+ユーザー名での新規作成・ログイン
 - ゲストログイン（ログアウトするとデータが消去される）
-- 6桁英数字のフレンドコードでフレンド交換
+- 6 桁英数字のフレンドコードでフレンド交換
 
 ### プロフィール・ステータス
+
 - ニックネーム、所属、電話、公開用メールの管理
 - ステータス（available / unavailable / emergency）と短いメモ（ノート）の設定
 - フレンドがステータス・ノートを閲覧可能
 
 ### フレンド管理
+
 - フレンドコードで検索して申請送信
 - 受信した申請の承認・拒否
 - 承認後はフレンド一覧に表示（双方向関係）
@@ -22,10 +25,11 @@
 - ピン留めは上部固定表示
 
 ### 表示・操作
+
 - フレンド検索（名前・状態で絞り込み）
 - ピン留めエリアと通常エリアで整理表示
 - 各フレンドの詳細（所属・電話・メール）をダイアログで確認
-- レスポンシブ対応のUI
+- レスポンシブ対応の UI
 
 ## 技術スタック
 
@@ -43,31 +47,31 @@
 npm install
 ```
 
-### 2. Supabaseの設定
+### 2. Supabase の設定
 
 1. [Supabase](https://supabase.com/)でプロジェクトを作成
-2. **重要**: SQL Editorでスキーマを実行
-   - Supabaseダッシュボードの「SQL Editor」に移動
+2. **重要**: SQL Editor でスキーマを実行
+   - Supabase ダッシュボードの「SQL Editor」に移動
    - `supabase/schema.sql`の内容をコピーして実行
    - これにより`profiles`、`friends`、`friend_requests`テーブルが作成されます
-3. プロジェクトのURLとAnon Keyを取得
-   - Supabaseダッシュボードにアクセス
+3. プロジェクトの URL と Anon Key を取得
+   - Supabase ダッシュボードにアクセス
    - プロジェクトを選択
    - **Settings** > **API** に移動
    - **Project URL** をコピー
    - **anon/public** key をコピー
-3. `.env.local`ファイルをプロジェクトルートに作成し、以下の環境変数を設定：
+4. `.env.local`ファイルをプロジェクトルートに作成し、以下の環境変数を設定：
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-**注意**: `.env.local`ファイルは`.gitignore`で除外されているため、GitHubにはプッシュされません。各環境（ローカル、Vercel）で個別に設定が必要です。
+**注意**: `.env.local`ファイルは`.gitignore`で除外されているため、GitHub にはプッシュされません。各環境（ローカル、Vercel）で個別に設定が必要です。
 
 ### 3. データベーススキーマのセットアップ
 
-SupabaseのSQL Editorで `supabase/schema.sql` の内容を実行してください。
+Supabase の SQL Editor で `supabase/schema.sql` の内容を実行してください。
 
 ### 4. 開発サーバーの起動
 
@@ -79,13 +83,13 @@ npm run dev
 
 ## デプロイ
 
-### Vercelへのデプロイ
+### Vercel へのデプロイ
 
-#### 方法1: Vercel Webダッシュボードからデプロイ（推奨）
+#### 方法 1: Vercel Web ダッシュボードからデプロイ（推奨）
 
-1. [Vercel](https://vercel.com/)にログイン（GitHubアカウントでログイン推奨）
+1. [Vercel](https://vercel.com/)にログイン（GitHub アカウントでログイン推奨）
 2. **Add New Project** をクリック
-3. GitHubリポジトリ `KOSOTSU-dev/tel-plus` を選択
+3. GitHub リポジトリ `KOSOTSU-dev/tel-plus` を選択
 4. **Configure Project** で以下を確認：
    - Framework Preset: **Next.js**
    - Root Directory: `./`（そのまま）
@@ -95,9 +99,9 @@ npm run dev
    - `NEXT_PUBLIC_SUPABASE_URL` = `your_supabase_project_url`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = `your_supabase_anon_key`
 6. **Deploy** をクリック
-7. デプロイ完了後、提供されるURLでアプリにアクセスできます
+7. デプロイ完了後、提供される URL でアプリにアクセスできます
 
-#### 方法2: Vercel CLIからデプロイ
+#### 方法 2: Vercel CLI からデプロイ
 
 ```bash
 # Vercel CLIをインストール（グローバルインストールが必要な場合は sudo を使用）
@@ -116,7 +120,7 @@ vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 #### デプロイ後の確認事項
 
-- ✅ データベーススキーマがSupabaseに適用されているか確認
+- ✅ データベーススキーマが Supabase に適用されているか確認
 - ✅ 環境変数が正しく設定されているか確認（Vercel Dashboard > Settings > Environment Variables）
 - ✅ アプリが正常に動作するか確認
 
@@ -138,25 +142,27 @@ vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
 ## データベーススキーマ
 
 ### profiles
+
 - ユーザーのプロフィール情報
-- フレンドコードは一意・6桁英数字
+- フレンドコードは一意・6 桁英数字
 
 ### friends
+
 - フレンド関係（双方向）
 - ピン留め、並び順、メモを管理
 
 ### friend_requests
+
 - フレンド申請の送受信
 - ステータス: pending / accepted / rejected
 
 ## 注意事項
 
-- `react-beautiful-dnd`はReactのStrictModeで警告が表示される場合がありますが、動作には影響ありません
-- フレンドコードの重複が発生した場合、自動的に再生成されます（最大3回までリトライ）
+- `react-beautiful-dnd`は React の StrictMode で警告が表示される場合がありますが、動作には影響ありません
+- フレンドコードの重複が発生した場合、自動的に再生成されます（最大 3 回までリトライ）
 - ゲストモードのデータはローカルストレージに保存され、ログアウト時に削除されます
-- SupabaseのRow Level Security (RLS)が有効になっているため、適切なポリシーが設定されていることを確認してください
+- Supabase の Row Level Security (RLS)が有効になっているため、適切なポリシーが設定されていることを確認してください
 
 ## ライセンス
 
 MIT
-

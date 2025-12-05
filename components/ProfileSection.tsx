@@ -293,8 +293,8 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
                     </>
                   )}
                 </div>
-                {/* 右端：フレンドコード */}
-                {displayProfile.friend_code && (
+                {/* 右端：フレンドコード（名前編集時は非表示） */}
+                {displayProfile.friend_code && !isEditingName && (
                   <div className="text-sm text-gray-500 font-mono bg-blue-100 px-2 py-1 rounded">
                     {displayProfile.friend_code}
                   </div>
@@ -384,10 +384,10 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
             入力した所属名・電話番号・メールはフレンドに公開されます。
           </div>
 
-          {/* 入力フィールド（三行） */}
-          <div className="space-y-3">
+          {/* 入力フィールド（画面幅が広い場合は横並び2行） */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="flex items-center gap-4">
-              <label className="text-sm w-20 text-gray-700">所属名</label>
+              <label className="text-sm w-20 text-gray-700 flex-shrink-0">所属名</label>
               <input
                 type="text"
                 value={formData.organization}
@@ -398,7 +398,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
               />
             </div>
             <div className="flex items-center gap-4">
-              <label className="text-sm w-20 text-gray-700">メール</label>
+              <label className="text-sm w-20 text-gray-700 flex-shrink-0">メール</label>
               <input
                 type="email"
                 value={formData.public_email}
@@ -408,8 +408,8 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
                 className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-green-500"
               />
             </div>
-            <div className="flex items-center gap-4">
-              <label className="text-sm w-20 text-gray-700">電話番号</label>
+            <div className="flex items-center gap-4 md:col-span-2">
+              <label className="text-sm w-20 text-gray-700 flex-shrink-0">電話番号</label>
               <input
                 type="tel"
                 value={formData.phone}

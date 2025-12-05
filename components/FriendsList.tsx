@@ -182,7 +182,7 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
                 </svg>
                 ピン留め
               </h3>
-              <div className="space-y-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 {pinnedFriends.map((friend) => (
                   <FriendListItem
                     key={friend.id}
@@ -201,7 +201,7 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
               {pinnedFriends.length > 0 && (
                 <h3 className="text-sm font-medium text-gray-700 mb-3">フレンド</h3>
               )}
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {unpinnedFriends.map((friend) => (
                   <FriendListItem
                     key={friend.id}
