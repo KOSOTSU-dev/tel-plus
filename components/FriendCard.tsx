@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Friend } from '@/types';
+import { Friend, UserStatus } from '@/types';
 
 interface FriendCardProps {
   friend: Friend;
@@ -21,17 +21,20 @@ export default function FriendCard({
   const [memo, setMemo] = useState(friend.memo || '');
 
   const profile = friend.friend_profile || friend;
-  const statusColors = {
+  const statusColors: Record<UserStatus, string> = {
     available: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     unavailable: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
     emergency: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
   };
 
-  const statusLabels = {
+  const statusLabels: Record<UserStatus, string> = {
     available: '対応可能',
     unavailable: '対応不可',
     emergency: '緊急',
   };
+
+  // profile.statusが存在することを確認（型安全のため）
+  const status: UserStatus = 'status' in profile && profile.status ? profile.status : 'available';
 
   const handleSaveMemo = () => {
     onUpdateMemo(friend.id, memo);
@@ -53,9 +56,9 @@ export default function FriendCard({
             )}
           </div>
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[profile.status]}`}
+            className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status]}`}
           >
-            {statusLabels[profile.status]}
+            {statusLabels[status]}
           </span>
         </div>
 
@@ -182,9 +185,9 @@ export default function FriendCard({
               <div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">ステータス</div>
                 <span
-                  className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${statusColors[profile.status]}`}
+                  className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${statusColors[status]}`}
                 >
-                  {statusLabels[profile.status]}
+                  {statusLabels[status]}
                 </span>
               </div>
 

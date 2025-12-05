@@ -20,7 +20,8 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
     const profile = friend.friend_profile || friend;
     const nickname = 'nickname' in profile ? profile.nickname : '';
     const matchesSearch = nickname.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || profile.status === statusFilter;
+    const status = 'status' in profile && profile.status ? profile.status : 'available';
+    const matchesStatus = statusFilter === 'all' || status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 

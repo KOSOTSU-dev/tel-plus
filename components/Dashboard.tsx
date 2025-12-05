@@ -36,7 +36,9 @@ export default function Dashboard() {
         setProfile(JSON.parse(savedProfile));
       }
       if (savedFriends) {
-        setFriends(JSON.parse(savedFriends));
+        // ローカルストレージから読み込んだデータをFriend型として扱う
+        const parsedFriends = JSON.parse(savedFriends) as Friend[];
+        setFriends(parsedFriends);
       }
       setLoading(false);
     } else {
@@ -101,7 +103,33 @@ export default function Dashboard() {
   const handleAddGuestFriend = (guestFriend: GuestFriend) => {
     const currentFriends = [...friends];
     guestFriend.order = currentFriends.length;
-    const updatedFriends = [...currentFriends, guestFriend as Friend];
+    
+    // GuestFriendをFriend型に変換
+    const friendAsFriend: Friend = {
+      id: guestFriend.id,
+      user_id: 'guest',
+      friend_id: guestFriend.friend_code,
+      pinned: guestFriend.pinned,
+      order: guestFriend.order,
+      memo: guestFriend.memo,
+      created_at: new Date().toISOString(),
+      friend_profile: {
+        id: guestFriend.id,
+        user_id: guestFriend.friend_code,
+        username: guestFriend.friend_code,
+        nickname: guestFriend.nickname,
+        organization: guestFriend.organization,
+        phone: guestFriend.phone,
+        public_email: guestFriend.public_email,
+        status: guestFriend.status,
+        note: guestFriend.note,
+        friend_code: guestFriend.friend_code,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    };
+    
+    const updatedFriends = [...currentFriends, friendAsFriend];
     
     if (isGuest) {
       localStorage.setItem('guest_friends', JSON.stringify(updatedFriends));
