@@ -120,8 +120,8 @@ export default function FriendSearch() {
   };
 
   return (
-    <div className="bg-gray-700 rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold text-white mb-4">フレンド検索</h2>
+    <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
+      <h2 className="text-xl font-bold text-gray-900 mb-4">フレンド検索</h2>
 
       <div className="space-y-4">
         <div className="flex gap-2">
@@ -130,7 +130,7 @@ export default function FriendSearch() {
             value={friendCode}
             onChange={(e) => setFriendCode(e.target.value.toUpperCase().slice(0, 6))}
             placeholder="フレンドコード (6桁)"
-            className="flex-1 px-4 py-2 border border-gray-500 bg-gray-600 text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder-gray-400"
+            className="flex-1 px-4 py-2 border border-gray-300 bg-white text-gray-900 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder-gray-400"
             maxLength={6}
           />
           <button
@@ -146,31 +146,31 @@ export default function FriendSearch() {
           <input
             type="text"
             placeholder="フレンド検索(名前/状態)"
-            className="w-full px-4 py-2 border border-gray-500 bg-gray-600 text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder-gray-400"
+            className="w-full px-4 py-2 border border-gray-300 bg-white text-gray-900 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder-gray-400"
           />
         </div>
 
         {error && (
-          <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-900/50 border border-green-700 text-green-200 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
             {success}
           </div>
         )}
 
         {searchResult && (
-          <div className="border border-gray-500 rounded-lg p-4 space-y-3 bg-gray-600">
+          <div className="border border-gray-300 rounded-lg p-4 space-y-3 bg-gray-50">
             <div className="flex justify-between items-start">
               <div>
-                <div className="font-bold text-lg text-white">
+                <div className="font-bold text-lg text-gray-900">
                   {searchResult.nickname || '未設定'}
                 </div>
                 {searchResult.organization && (
-                  <div className="text-sm text-gray-300">
+                  <div className="text-sm text-gray-600">
                     {searchResult.organization}
                   </div>
                 )}
@@ -183,7 +183,7 @@ export default function FriendSearch() {
             </div>
 
             {searchResult.note && (
-              <div className="text-sm text-gray-200 whitespace-pre-wrap">
+              <div className="text-sm text-gray-700 whitespace-pre-wrap">
                 {searchResult.note}
               </div>
             )}

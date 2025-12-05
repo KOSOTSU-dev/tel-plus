@@ -167,18 +167,14 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
     emergency: '緊急のみ',
   };
 
-  if (!profile) {
-    return (
-      <div className="bg-white p-6">
+  return (
+    <div className="bg-white p-6">
+      {!profile && (
         <div className="text-gray-500 text-center py-4">
           プロフィールを設定してください
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white p-6">
+      )}
+      {profile && (
       <div className="flex items-start gap-4 mb-4">
         {/* 緑のグラデーション背景のアイコン */}
         <div className="w-20 h-20 rounded-lg flex items-center justify-center flex-shrink-0" style={{
@@ -334,6 +330,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
           />
         </div>
       </div>
+      )}
     </div>
   );
 }
