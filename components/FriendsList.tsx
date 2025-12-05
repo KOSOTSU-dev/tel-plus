@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Friend, UserStatus } from '@/types';
 import FriendListItem from './FriendListItem';
@@ -10,9 +11,33 @@ interface FriendsListProps {
   onUpdate: (friends: Friend[]) => void;
 }
 
+const statusLabels: Record<UserStatus, string> = {
+  available: '対応可',
+  unavailable: '不可',
+  emergency: '緊急のみ',
+};
+
 export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListProps) {
-  const pinnedFriends = friends.filter((f) => f.pinned);
-  const unpinnedFriends = friends.filter((f) => !f.pinned);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // 検索フィルタリング（名前またはステータスで検索）
+  const filteredFriends = friends.filter((friend) => {
+    const profile = friend.friend_profile || friend;
+    const nickname = 'nickname' in profile ? profile.nickname || '' : '';
+    const status = 'status' in profile ? profile.status || 'available' : 'available';
+    const statusLabel = statusLabels[status];
+    
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      nickname.toLowerCase().includes(query) ||
+      statusLabel.includes(query)
+    );
+  });
+
+  const pinnedFriends = filteredFriends.filter((f) => f.pinned);
+  const unpinnedFriends = filteredFriends.filter((f) => !f.pinned);
 
   const handleDelete = async (friendId: string) => {
     if (!confirm('このフレンドを削除しますか？')) return;
@@ -114,6 +139,17 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
 
   return (
     <div className="bg-white p-6 border border-gray-200 rounded-lg">
+      {/* フレンド検索（名前or状況） */}
+      <div className="mb-4">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="フレンド検索（名前or状況）"
+          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-green-500"
+        />
+      </div>
+
       {isGuest && (
         <div className="mb-4">
           <button className="w-full px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex items-center justify-center gap-1">
@@ -131,6 +167,10 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
       {friends.length === 0 ? (
         <div className="text-center text-gray-500 py-8">
           フレンドがいません
+        </div>
+      ) : filteredFriends.length === 0 ? (
+        <div className="text-center text-gray-500 py-8">
+          該当するフレンドが見つかりません
         </div>
       ) : (
         <div className="space-y-6">
