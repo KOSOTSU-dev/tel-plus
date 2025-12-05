@@ -169,95 +169,80 @@ export default function Dashboard() {
       if (friendsData && friendsData.length > 0) {
         setFriends(friendsData as Friend[]);
       } else {
-        // フレンドがいない場合は、サンプルフレンドのプロフィールを作成
-        // サンプルユーザーのプロフィールを作成（存在しない場合）
-        const sampleUserIds = ['sample_tanaka', 'sample_sato', 'sample_suzuki'];
-        const sampleProfiles = [
+        // フレンドがいない場合は、クライアント側でサンプルフレンドを表示
+        // （データベースには保存されず、表示用のみ）
+        const sampleFriends: Friend[] = [
           {
-            user_id: 'sample_tanaka',
-            username: 'tanaka',
-            nickname: '田中',
-            organization: 'サンプル',
-            phone: '',
-            public_email: '',
-            status: 'available',
-            note: '30分ご対応可能',
-            friend_code: 'TANAKA1',
-          },
-          {
-            user_id: 'sample_sato',
-            username: 'sato',
-            nickname: '佐藤',
-            organization: 'サンプル',
-            phone: '',
-            public_email: '',
-            status: 'unavailable',
-            note: '会議中',
-            friend_code: 'SATO001',
-          },
-          {
-            user_id: 'sample_suzuki',
-            username: 'suzuki',
-            nickname: '鈴木',
-            organization: 'サンプル',
-            phone: '',
-            public_email: '',
-            status: 'emergency',
-            note: '緊急のみ',
-            friend_code: 'SUZUKI1',
-          },
-        ];
-
-        // サンプルプロフィールを作成（upsert使用）
-        for (const sampleProfile of sampleProfiles) {
-          await supabase
-            .from('profiles')
-            .upsert(sampleProfile, { onConflict: 'user_id' });
-        }
-
-        // フレンド関係を作成
-        const friendRelations = [
-          {
+            id: 'sample1',
             user_id: user.id,
-            friend_id: 'sample_tanaka',
+            friend_id: '00000000-0000-0000-0000-000000000001',
             pinned: true,
             order: 0,
             memo: '',
+            created_at: new Date().toISOString(),
+            friend_profile: {
+              id: 'sample1',
+              user_id: '00000000-0000-0000-0000-000000000001',
+              username: 'tanaka',
+              nickname: '田中',
+              organization: 'サンプル',
+              phone: '',
+              public_email: '',
+              status: 'available',
+              note: '30分ご対応可能',
+              friend_code: 'TANAKA1',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
           },
           {
+            id: 'sample2',
             user_id: user.id,
-            friend_id: 'sample_sato',
+            friend_id: '00000000-0000-0000-0000-000000000002',
             pinned: false,
             order: 1,
             memo: '',
+            created_at: new Date().toISOString(),
+            friend_profile: {
+              id: 'sample2',
+              user_id: '00000000-0000-0000-0000-000000000002',
+              username: 'sato',
+              nickname: '佐藤',
+              organization: 'サンプル',
+              phone: '',
+              public_email: '',
+              status: 'unavailable',
+              note: '会議中',
+              friend_code: 'SATO001',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
           },
           {
+            id: 'sample3',
             user_id: user.id,
-            friend_id: 'sample_suzuki',
+            friend_id: '00000000-0000-0000-0000-000000000003',
             pinned: false,
             order: 2,
             memo: '',
+            created_at: new Date().toISOString(),
+            friend_profile: {
+              id: 'sample3',
+              user_id: '00000000-0000-0000-0000-000000000003',
+              username: 'suzuki',
+              nickname: '鈴木',
+              organization: 'サンプル',
+              phone: '',
+              public_email: '',
+              status: 'emergency',
+              note: '緊急のみ',
+              friend_code: 'SUZUKI1',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
           },
         ];
-
-        for (const relation of friendRelations) {
-          await supabase.from('friends').insert(relation);
-        }
-
-        // 作成したフレンドを再取得
-        const { data: newFriendsData } = await supabase
-          .from('friends')
-          .select(`
-            *,
-            friend_profile:profiles!friends_friend_id_fkey(*)
-          `)
-          .eq('user_id', user.id)
-          .order('pinned', { ascending: false })
-          .order('order', { ascending: true });
-
-        if (newFriendsData) {
-          setFriends(newFriendsData as Friend[]);
-        }
+        setFriends(sampleFriends);
       }
 
       setLoading(false);

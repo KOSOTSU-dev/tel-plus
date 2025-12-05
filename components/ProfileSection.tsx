@@ -169,13 +169,13 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
 
   return (
     <div className="bg-white p-6">
-      {!profile && (
+      {!profile ? (
         <div className="text-gray-500 text-center py-4">
           プロフィールを設定してください
         </div>
-      )}
-      {profile && (
-      <div className="flex items-start gap-4 mb-4">
+      ) : (
+        <>
+          <div className="flex items-start gap-4 mb-4">
         {/* 緑のグラデーション背景のアイコン */}
         <div className="w-20 h-20 rounded-lg flex items-center justify-center flex-shrink-0" style={{
           background: 'linear-gradient(to bottom, #4ade80, #22c55e)'
@@ -330,6 +330,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
           />
         </div>
       </div>
+        </>
       )}
     </div>
   );
