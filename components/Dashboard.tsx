@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Profile, Friend } from '@/types';
 import ProfileSection from './ProfileSection';
 import FriendsList from './FriendsList';
-import FriendSearch from './FriendSearch';
-import FriendRequests from './FriendRequests';
+import FriendModal from './FriendModal';
 import GuestFriendAdd from './GuestFriendAdd';
 import { GuestFriend } from '@/types';
 
@@ -16,6 +15,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFriendModalOpen, setIsFriendModalOpen] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -327,15 +327,20 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <h1 className="text-xl font-bold">電話アポ</h1>
           <div className="flex items-center gap-4">
-            <button className="flex items-center gap-1 text-sm hover:underline">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span>+フレンド</span>
-            </button>
+            {!isGuest && (
+              <button 
+                onClick={() => setIsFriendModalOpen(true)}
+                className="flex items-center gap-1 text-sm hover:underline"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>+フレンド</span>
+              </button>
+            )}
             <button className="flex items-center gap-1 text-sm hover:underline">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -356,7 +361,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 py-4">
         <div className="flex flex-col gap-8">
           <div className="w-full">
             <ProfileSection
@@ -367,16 +372,6 @@ export default function Dashboard() {
           </div>
           
           <div className="w-full">
-            {!isGuest && (
-              <>
-                <div className="mb-6">
-                  <FriendSearch />
-                </div>
-                <div className="mb-6">
-                  <FriendRequests />
-                </div>
-              </>
-            )}
             <FriendsList
               friends={friends}
               isGuest={isGuest}
@@ -385,6 +380,15 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
+
+      {/* フレンドモーダル */}
+      {!isGuest && (
+        <FriendModal
+          isOpen={isFriendModalOpen}
+          onClose={() => setIsFriendModalOpen(false)}
+          profile={profile}
+        />
+      )}
     </div>
   );
 }
