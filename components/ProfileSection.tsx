@@ -15,6 +15,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [isEditingIcon, setIsEditingIcon] = useState(false);
+  const [isEditingStatus, setIsEditingStatus] = useState(false);
   const [nameValue, setNameValue] = useState('');
   const [noteValue, setNoteValue] = useState('');
   const [formData, setFormData] = useState({
@@ -161,6 +162,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
       setIsEditingName(false);
       setIsEditingNote(false);
       setIsEditingIcon(false);
+      setIsEditingStatus(false);
     } catch (error: any) {
       alert('保存に失敗しました: ' + error.message);
     } finally {

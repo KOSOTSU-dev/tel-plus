@@ -141,14 +141,6 @@ export default function FriendSearch() {
             {loading ? '検索中...' : '検索'}
           </button>
         </div>
-        
-        <div>
-          <input
-            type="text"
-            placeholder="フレンド検索(名前/状態)"
-            className="w-full px-4 py-2 border border-gray-300 bg-white text-gray-900 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder-gray-400"
-          />
-        </div>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">

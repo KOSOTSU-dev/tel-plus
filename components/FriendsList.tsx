@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Friend, UserStatus } from '@/types';
 import FriendListItem from './FriendListItem';
@@ -12,16 +11,8 @@ interface FriendsListProps {
 }
 
 export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const filteredFriends = friends.filter((friend) => {
-    const profile = friend.friend_profile || friend;
-    const nickname = 'nickname' in profile ? profile.nickname : '';
-    return nickname.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
-  const pinnedFriends = filteredFriends.filter((f) => f.pinned);
-  const unpinnedFriends = filteredFriends.filter((f) => !f.pinned);
+  const pinnedFriends = friends.filter((f) => f.pinned);
+  const unpinnedFriends = friends.filter((f) => !f.pinned);
 
   const handleDelete = async (friendId: string) => {
     if (!confirm('このフレンドを削除しますか？')) return;
@@ -123,16 +114,9 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
 
   return (
     <div className="bg-white p-6 border border-gray-200 rounded-lg">
-      <div className="flex items-center gap-2 mb-4">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="フレンド検索(名前/状態)"
-          className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-green-500"
-        />
-        {isGuest && (
-          <button className="px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex items-center gap-1">
+      {isGuest && (
+        <div className="mb-4">
+          <button className="w-full px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex items-center justify-center gap-1">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -141,16 +125,12 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
             </svg>
             <span>+フレンド交換</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {friends.length === 0 ? (
         <div className="text-center text-gray-500 py-8">
           フレンドがいません
-        </div>
-      ) : filteredFriends.length === 0 ? (
-        <div className="text-center text-gray-500 py-8">
-          該当するフレンドが見つかりません
         </div>
       ) : (
         <div className="space-y-6">
