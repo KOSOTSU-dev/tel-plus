@@ -174,27 +174,11 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
         </div>
       ) : (
         <div className="space-y-1">
-          {/* 見出し行（ピン留めがある場合は横並び） */}
-          {(pinnedFriends.length > 0 || unpinnedFriends.length > 0) && (
-            <div className="flex items-center gap-4 mb-1.5">
-              {unpinnedFriends.length > 0 && (
-                <h3 className="text-sm font-medium text-gray-700">フレンド</h3>
-              )}
-              {pinnedFriends.length > 0 && (
-                <h3 className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                  </svg>
-                  ピン留め
-                </h3>
-              )}
-            </div>
-          )}
-
-          {pinnedFriends.length > 0 && (
+          {unpinnedFriends.length > 0 && (
             <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                {pinnedFriends.map((friend) => (
+              <h3 className="text-sm font-medium text-gray-700 mb-1.5">フレンド</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {unpinnedFriends.map((friend) => (
                   <FriendListItem
                     key={friend.id}
                     friend={friend}
@@ -207,10 +191,16 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
             </div>
           )}
 
-          {unpinnedFriends.length > 0 && (
+          {pinnedFriends.length > 0 && (
             <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {unpinnedFriends.map((friend) => (
+              <h3 className="text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
+                <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                ピン留め
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                {pinnedFriends.map((friend) => (
                   <FriendListItem
                     key={friend.id}
                     friend={friend}
