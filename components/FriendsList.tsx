@@ -32,15 +32,21 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
         localStorage.setItem('guest_friends', JSON.stringify(updatedFriends));
         onUpdate(updatedFriends);
       } else {
-        const { error } = await createClient()
-          .from('friends')
-          .delete()
-          .eq('id', friendId);
+        // サンプルフレンド（idがsampleで始まる）の場合は、クライアント側のみで削除
+        if (friendId.startsWith('sample')) {
+          const updatedFriends = friends.filter((f) => f.id !== friendId);
+          onUpdate(updatedFriends);
+        } else {
+          const { error } = await createClient()
+            .from('friends')
+            .delete()
+            .eq('id', friendId);
 
-        if (error) throw error;
+          if (error) throw error;
 
-        const updatedFriends = friends.filter((f) => f.id !== friendId);
-        onUpdate(updatedFriends);
+          const updatedFriends = friends.filter((f) => f.id !== friendId);
+          onUpdate(updatedFriends);
+        }
       }
     } catch (error: any) {
       alert('削除に失敗しました: ' + error.message);
@@ -56,17 +62,25 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
         localStorage.setItem('guest_friends', JSON.stringify(updatedFriends));
         onUpdate(updatedFriends);
       } else {
-        const { error } = await createClient()
-          .from('friends')
-          .update({ pinned: !friend.pinned })
-          .eq('id', friend.id);
+        // サンプルフレンドの場合は、クライアント側のみで更新
+        if (friend.id.startsWith('sample')) {
+          const updatedFriends = friends.map((f) =>
+            f.id === friend.id ? { ...f, pinned: !f.pinned } : f
+          );
+          onUpdate(updatedFriends);
+        } else {
+          const { error } = await createClient()
+            .from('friends')
+            .update({ pinned: !friend.pinned })
+            .eq('id', friend.id);
 
-        if (error) throw error;
+          if (error) throw error;
 
-        const updatedFriends = friends.map((f) =>
-          f.id === friend.id ? { ...f, pinned: !f.pinned } : f
-        );
-        onUpdate(updatedFriends);
+          const updatedFriends = friends.map((f) =>
+            f.id === friend.id ? { ...f, pinned: !f.pinned } : f
+          );
+          onUpdate(updatedFriends);
+        }
       }
     } catch (error: any) {
       alert('ピン留めの更新に失敗しました: ' + error.message);
@@ -82,17 +96,25 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
         localStorage.setItem('guest_friends', JSON.stringify(updatedFriends));
         onUpdate(updatedFriends);
       } else {
-        const { error } = await createClient()
-          .from('friends')
-          .update({ memo })
-          .eq('id', friendId);
+        // サンプルフレンドの場合は、クライアント側のみで更新
+        if (friendId.startsWith('sample')) {
+          const updatedFriends = friends.map((f) =>
+            f.id === friendId ? { ...f, memo } : f
+          );
+          onUpdate(updatedFriends);
+        } else {
+          const { error } = await createClient()
+            .from('friends')
+            .update({ memo })
+            .eq('id', friendId);
 
-        if (error) throw error;
+          if (error) throw error;
 
-        const updatedFriends = friends.map((f) =>
-          f.id === friendId ? { ...f, memo } : f
-        );
-        onUpdate(updatedFriends);
+          const updatedFriends = friends.map((f) =>
+            f.id === friendId ? { ...f, memo } : f
+          );
+          onUpdate(updatedFriends);
+        }
       }
     } catch (error: any) {
       alert('メモの更新に失敗しました: ' + error.message);
