@@ -173,10 +173,10 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
           該当するフレンドが見つかりません
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-1">
           {pinnedFriends.length > 0 && (
-            <div className="border-t-2 border-gray-300 pt-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-2">
                 <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
@@ -199,7 +199,7 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
           {unpinnedFriends.length > 0 && (
             <div>
               {pinnedFriends.length > 0 && (
-                <h3 className="text-sm font-medium text-gray-700 mb-3">フレンド</h3>
+                <h3 className="text-sm font-medium text-gray-700 mb-1.5 mt-1">フレンド</h3>
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {unpinnedFriends.map((friend) => (
