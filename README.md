@@ -47,12 +47,19 @@ npm install
 
 1. [Supabase](https://supabase.com/)でプロジェクトを作成
 2. プロジェクトのURLとAnon Keyを取得
-3. `.env.local`ファイルを作成し、以下の環境変数を設定：
+   - Supabaseダッシュボードにアクセス
+   - プロジェクトを選択
+   - **Settings** > **API** に移動
+   - **Project URL** をコピー
+   - **anon/public** key をコピー
+3. `.env.local`ファイルをプロジェクトルートに作成し、以下の環境変数を設定：
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
+
+**注意**: `.env.local`ファイルは`.gitignore`で除外されているため、GitHubにはプッシュされません。各環境（ローカル、Vercel）で個別に設定が必要です。
 
 ### 3. データベーススキーマのセットアップ
 
@@ -70,12 +77,44 @@ npm run dev
 
 ### Vercelへのデプロイ
 
-1. [Vercel](https://vercel.com/)にログイン
-2. プロジェクトをインポート
-3. 環境変数を設定：
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-4. デプロイ
+#### 方法1: Vercel Webダッシュボードからデプロイ（推奨）
+
+1. [Vercel](https://vercel.com/)にログイン（GitHubアカウントでログイン推奨）
+2. **Add New Project** をクリック
+3. GitHubリポジトリ `KOSOTSU-dev/tel-plus` を選択
+4. **Configure Project** で以下を確認：
+   - Framework Preset: **Next.js**
+   - Root Directory: `./`（そのまま）
+   - Build Command: `npm run build`（自動検出）
+   - Output Directory: `.next`（自動検出）
+5. **Environment Variables** をクリックして以下を追加：
+   - `NEXT_PUBLIC_SUPABASE_URL` = `your_supabase_project_url`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = `your_supabase_anon_key`
+6. **Deploy** をクリック
+7. デプロイ完了後、提供されるURLでアプリにアクセスできます
+
+#### 方法2: Vercel CLIからデプロイ
+
+```bash
+# Vercel CLIをインストール（グローバルインストールが必要な場合は sudo を使用）
+npm i -g vercel
+
+# プロジェクトディレクトリで実行
+cd "/Users/adachiseigo/電話帳プラス"
+vercel
+
+# 初回はログインが必要
+# プロンプトに従って設定
+# 環境変数は vercel env add コマンドで追加可能
+vercel env add NEXT_PUBLIC_SUPABASE_URL
+vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
+```
+
+#### デプロイ後の確認事項
+
+- ✅ データベーススキーマがSupabaseに適用されているか確認
+- ✅ 環境変数が正しく設定されているか確認（Vercel Dashboard > Settings > Environment Variables）
+- ✅ アプリが正常に動作するか確認
 
 ## 使い方
 
