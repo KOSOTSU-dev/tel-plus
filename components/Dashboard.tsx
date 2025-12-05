@@ -34,11 +34,105 @@ export default function Dashboard() {
       
       if (savedProfile) {
         setProfile(JSON.parse(savedProfile));
+      } else {
+        // 初期プロフィールを作成
+        const initialProfile: Profile = {
+          id: 'guest',
+          user_id: 'guest',
+          username: 'guest',
+          nickname: 'ごいせ',
+          organization: '',
+          phone: '',
+          public_email: '',
+          status: 'available',
+          note: '30分ご対応可能',
+          friend_code: '00E9VE',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        localStorage.setItem('guest_profile', JSON.stringify(initialProfile));
+        setProfile(initialProfile);
       }
+      
       if (savedFriends) {
         // ローカルストレージから読み込んだデータをFriend型として扱う
         const parsedFriends = JSON.parse(savedFriends) as Friend[];
         setFriends(parsedFriends);
+      } else {
+        // 初期サンプルフレンドを作成
+        const sampleFriends: Friend[] = [
+          {
+            id: 'sample1',
+            user_id: 'guest',
+            friend_id: 'TANAKA01',
+            pinned: true,
+            order: 0,
+            memo: '',
+            created_at: new Date().toISOString(),
+            friend_profile: {
+              id: 'sample1',
+              user_id: 'TANAKA01',
+              username: 'tanaka',
+              nickname: '田中',
+              organization: 'サンプル',
+              phone: '',
+              public_email: '',
+              status: 'available',
+              note: '30分ご対応可能',
+              friend_code: 'TANAKA01',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          },
+          {
+            id: 'sample2',
+            user_id: 'guest',
+            friend_id: 'SATO01',
+            pinned: false,
+            order: 1,
+            memo: '',
+            created_at: new Date().toISOString(),
+            friend_profile: {
+              id: 'sample2',
+              user_id: 'SATO01',
+              username: 'sato',
+              nickname: '佐藤',
+              organization: 'サンプル',
+              phone: '',
+              public_email: '',
+              status: 'unavailable',
+              note: '会議中',
+              friend_code: 'SATO01',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          },
+          {
+            id: 'sample3',
+            user_id: 'guest',
+            friend_id: 'SUZUKI01',
+            pinned: false,
+            order: 2,
+            memo: '',
+            created_at: new Date().toISOString(),
+            friend_profile: {
+              id: 'sample3',
+              user_id: 'SUZUKI01',
+              username: 'suzuki',
+              nickname: '鈴木',
+              organization: 'サンプル',
+              phone: '',
+              public_email: '',
+              status: 'emergency',
+              note: '緊急のみ',
+              friend_code: 'SUZUKI01',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          },
+        ];
+        localStorage.setItem('guest_friends', JSON.stringify(sampleFriends));
+        setFriends(sampleFriends);
       }
       setLoading(false);
     } else {
@@ -147,26 +241,32 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="bg-white dark:bg-gray-800 shadow-sm">
+    <div className="min-h-screen bg-white">
+      <header className="bg-green-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">電話帳プラス</h1>
+          <h1 className="text-xl font-bold">電話アポ</h1>
           <div className="flex items-center gap-4">
-            {isGuest && (
-              <span className="text-sm text-gray-500 dark:text-gray-400">ゲストモード</span>
-            )}
+            <button className="flex items-center gap-1 text-sm hover:underline">
+              <span>👤</span>
+              <span>+フレンド</span>
+            </button>
+            <button className="flex items-center gap-1 text-sm hover:underline">
+              <span>⚙️</span>
+              <span>設定</span>
+            </button>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg transition-colors"
+              className="flex items-center gap-1 text-sm hover:underline"
             >
-              ログアウト
+              <span>→</span>
+              <span>ログアウト</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
             <ProfileSection
               profile={profile}
@@ -175,14 +275,16 @@ export default function Dashboard() {
             />
           </div>
           
-          <div className="lg:col-span-2 space-y-6">
-            {!isGuest ? (
+          <div className="lg:col-span-2">
+            {!isGuest && (
               <>
-                <FriendSearch />
-                <FriendRequests />
+                <div className="mb-6">
+                  <FriendSearch />
+                </div>
+                <div className="mb-6">
+                  <FriendRequests />
+                </div>
               </>
-            ) : (
-              <GuestFriendAdd onAdd={handleAddGuestFriend} />
             )}
             <FriendsList
               friends={friends}
