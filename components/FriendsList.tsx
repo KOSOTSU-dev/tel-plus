@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { createClient } from '@/lib/supabase/client';
 import { Friend, UserStatus } from '@/types';
 import FriendListItem from './FriendListItem';
@@ -36,8 +37,64 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
     );
   });
 
-  const pinnedFriends = filteredFriends.filter((f) => f.pinned);
-  const unpinnedFriends = filteredFriends.filter((f) => !f.pinned);
+  // 並び順でソート
+  const pinnedFriends = filteredFriends.filter((f) => f.pinned).sort((a, b) => (a.order || 0) - (b.order || 0));
+  const unpinnedFriends = filteredFriends.filter((f) => !f.pinned).sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+
+    const { source, destination, draggableId } = result;
+
+    // ピン留め同士、非ピン留め同士の移動のみ許可
+    if (source.droppableId !== destination.droppableId) return;
+
+    const isPinned = source.droppableId === 'pinned';
+    const sourceList = isPinned ? pinnedFriends : unpinnedFriends;
+    
+    // 並び順を更新
+    const newList = Array.from(sourceList);
+    const [removed] = newList.splice(source.index, 1);
+    newList.splice(destination.index, 0, removed);
+
+    // orderフィールドを更新
+    const updatedList = newList.map((friend, index) => ({
+      ...friend,
+      order: index,
+    }));
+
+    // 他のリストとマージ
+    const updatedFriends = isPinned
+      ? [...unpinnedFriends, ...updatedList]
+      : [...pinnedFriends, ...updatedList];
+
+    // データベースに保存
+    try {
+      if (isGuest) {
+        localStorage.setItem('guest_friends', JSON.stringify(updatedFriends));
+        onUpdate(updatedFriends);
+      } else {
+        // サンプルフレンドの場合はクライアント側のみ更新
+        const friendToUpdate = updatedList.find(f => f.id === draggableId);
+        if (friendToUpdate && friendToUpdate.id.startsWith('sample')) {
+          onUpdate(updatedFriends);
+        } else {
+          // Supabaseに更新
+          for (const friend of updatedList) {
+            if (!friend.id.startsWith('sample')) {
+              await createClient()
+                .from('friends')
+                .update({ order: friend.order })
+                .eq('id', friend.id);
+            }
+          }
+          onUpdate(updatedFriends);
+        }
+      }
+    } catch (error: any) {
+      alert('並び順の更新に失敗しました: ' + error.message);
+    }
+  };
 
   const handleDelete = async (friendId: string) => {
     if (!confirm('このフレンドを削除しますか？')) return;
@@ -173,58 +230,96 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
           該当するフレンドが見つかりません
         </div>
       ) : (
-        <div className="space-y-1">
-          {/* 見出し行 */}
-          {(pinnedFriends.length > 0 || unpinnedFriends.length > 0) && (
-            <div className="space-y-1 mb-1.5">
-              {unpinnedFriends.length > 0 && (
-                <h3 className="text-sm font-medium text-gray-700">フレンド</h3>
-              )}
-              {pinnedFriends.length > 0 && (
-                <h3 className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                  </svg>
-                  ピン留め
-                </h3>
-              )}
-            </div>
-          )}
-
-          {/* ピン留めフレンドリスト */}
-          {pinnedFriends.length > 0 && (
-            <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 bg-yellow-50 border border-yellow-200 rounded-lg p-1">
-                {pinnedFriends.map((friend) => (
-                  <FriendListItem
-                    key={friend.id}
-                    friend={friend}
-                    onDelete={handleDelete}
-                    onTogglePin={handleTogglePin}
-                    onUpdateMemo={handleUpdateMemo}
-                  />
-                ))}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="space-y-1">
+            {/* 見出し行 */}
+            {(pinnedFriends.length > 0 || unpinnedFriends.length > 0) && (
+              <div className="space-y-1 mb-1.5">
+                {unpinnedFriends.length > 0 && (
+                  <h3 className="text-sm font-medium text-gray-700">フレンド</h3>
+                )}
+                {pinnedFriends.length > 0 && (
+                  <h3 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    ピン留め
+                  </h3>
+                )}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* ピン留めされていないフレンドリスト */}
-          {unpinnedFriends.length > 0 && (
-            <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {unpinnedFriends.map((friend) => (
-                  <FriendListItem
-                    key={friend.id}
-                    friend={friend}
-                    onDelete={handleDelete}
-                    onTogglePin={handleTogglePin}
-                    onUpdateMemo={handleUpdateMemo}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+            {/* ピン留めフレンドリスト */}
+            {pinnedFriends.length > 0 && (
+              <Droppable droppableId="pinned" direction="horizontal">
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 border border-yellow-200 rounded-lg p-1"
+                  >
+                    {pinnedFriends.map((friend, index) => (
+                      <Draggable key={friend.id} draggableId={friend.id} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className={snapshot.isDragging ? 'opacity-50' : ''}
+                          >
+                            <FriendListItem
+                              friend={friend}
+                              onDelete={handleDelete}
+                              onTogglePin={handleTogglePin}
+                              onUpdateMemo={handleUpdateMemo}
+                              isPinned={true}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            )}
+
+            {/* ピン留めされていないフレンドリスト */}
+            {unpinnedFriends.length > 0 && (
+              <Droppable droppableId="unpinned" direction="horizontal">
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+                  >
+                    {unpinnedFriends.map((friend, index) => (
+                      <Draggable key={friend.id} draggableId={friend.id} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className={snapshot.isDragging ? 'opacity-50' : ''}
+                          >
+                            <FriendListItem
+                              friend={friend}
+                              onDelete={handleDelete}
+                              onTogglePin={handleTogglePin}
+                              onUpdateMemo={handleUpdateMemo}
+                              isPinned={false}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            )}
+          </div>
+        </DragDropContext>
       )}
     </div>
   );

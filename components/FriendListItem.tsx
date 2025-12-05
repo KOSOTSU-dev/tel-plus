@@ -8,6 +8,7 @@ interface FriendListItemProps {
   onDelete: (friendId: string) => void;
   onTogglePin: (friend: Friend) => void;
   onUpdateMemo: (friendId: string, memo: string) => void;
+  isPinned?: boolean;
 }
 
 export default function FriendListItem({
@@ -15,6 +16,7 @@ export default function FriendListItem({
   onDelete,
   onTogglePin,
   onUpdateMemo,
+  isPinned = false,
 }: FriendListItemProps) {
   const [memo, setMemo] = useState(friend.memo || '');
   const [isEditingMemo, setIsEditingMemo] = useState(false);
@@ -58,7 +60,7 @@ export default function FriendListItem({
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg py-1.5 px-2">
+    <div className={`border border-gray-200 rounded-lg py-1.5 px-2 ${isPinned ? 'bg-yellow-50' : ''}`}>
       <div className="flex items-start gap-2">
         <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
