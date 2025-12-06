@@ -286,12 +286,13 @@ export default function FriendModal({ isOpen, onClose, profile }: FriendModalPro
       setSuccess('フレンド申請を承認しました');
       loadRequests();
       
-      // モーダルを閉じて、ダッシュボードを更新するために少し待ってからモーダルを閉じる
+      // ダッシュボードを更新するためにカスタムイベントを発火
+      window.dispatchEvent(new CustomEvent('friendUpdated'));
+      
+      // モーダルを閉じる
       setTimeout(() => {
         onClose();
-        // 親コンポーネントに通知するために、カスタムイベントを発火
-        window.dispatchEvent(new CustomEvent('friendUpdated'));
-      }, 1000);
+      }, 1500);
     } catch (error: any) {
       console.error('承認エラー:', error);
       alert('承認に失敗しました: ' + (error.message || '不明なエラー'));

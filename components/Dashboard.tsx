@@ -21,6 +21,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadData();
+
+    // フレンド更新イベントをリッスン
+    const handleFriendUpdated = () => {
+      loadData();
+    };
+
+    window.addEventListener('friendUpdated', handleFriendUpdated);
+
+    return () => {
+      window.removeEventListener('friendUpdated', handleFriendUpdated);
+    };
   }, []);
 
   const loadData = async () => {

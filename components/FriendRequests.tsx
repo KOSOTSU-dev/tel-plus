@@ -202,8 +202,9 @@ export default function FriendRequests() {
       }
 
       loadRequests();
-      // ダッシュボードをリロードするためにページをリロード
-      window.location.reload();
+      
+      // ダッシュボードを更新するためにカスタムイベントを発火
+      window.dispatchEvent(new CustomEvent('friendUpdated'));
     } catch (error: any) {
       console.error('承認エラー:', error);
       alert('承認に失敗しました: ' + (error.message || '不明なエラー'));
