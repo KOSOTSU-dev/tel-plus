@@ -41,16 +41,6 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
   const pinnedFriends = filteredFriends.filter((f) => f.pinned).sort((a, b) => (a.order || 0) - (b.order || 0));
   const unpinnedFriends = filteredFriends.filter((f) => !f.pinned).sort((a, b) => (a.order || 0) - (b.order || 0));
 
-  // グリッドの列数を取得（画面幅に応じて）
-  const getGridCols = () => {
-    if (typeof window === 'undefined') return 4;
-    const width = window.innerWidth;
-    if (width >= 1280) return 4; // xl
-    if (width >= 1024) return 3; // lg
-    if (width >= 768) return 2;  // md
-    return 1;
-  };
-
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
 
@@ -64,18 +54,6 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
 
     const isPinned = source.droppableId === 'pinned';
     const sourceList = isPinned ? pinnedFriends : unpinnedFriends;
-    
-    // グリッド列数を取得
-    const gridCols = getGridCols();
-    
-    // グリッド内の位置を計算（横方向の移動を考慮）
-    const sourceRow = Math.floor(source.index / gridCols);
-    const sourceCol = source.index % gridCols;
-    const destRow = Math.floor(destination.index / gridCols);
-    const destCol = destination.index % gridCols;
-    
-    // 同じ行内での移動のみ許可（横方向のみ）
-    if (sourceRow !== destRow) return;
     
     // 並び順を更新
     const newList = Array.from(sourceList);
@@ -307,11 +285,15 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
 
             {/* ピン留めされていないフレンドリスト */}
             <Droppable droppableId="unpinned" isDropDisabled={unpinnedFriends.length === 0}>
-              {(provided) => (
+              {(provided, snapshot) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 ${unpinnedFriends.length === 0 ? 'hidden' : ''}`}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                  }}
                 >
                   {unpinnedFriends.map((friend, index) => (
                     <Draggable key={friend.id} draggableId={friend.id} index={index}>
@@ -320,8 +302,11 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className={snapshot.isDragging ? 'opacity-50' : ''}
-                          style={provided.draggableProps.style}
+                          className={snapshot.isDragging ? 'opacity-50 z-50' : ''}
+                          style={{
+                            ...provided.draggableProps.style,
+                            transition: snapshot.isDragging ? 'none' : 'transform 0.2s ease',
+                          }}
                         >
                           <FriendListItem
                             friend={friend}
