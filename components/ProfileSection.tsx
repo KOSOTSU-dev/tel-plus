@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Profile, UserStatus } from '@/types';
 import { generateFriendCode } from '@/lib/utils';
@@ -15,7 +15,6 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [isEditingIcon, setIsEditingIcon] = useState(false);
-  const [isEditingStatus, setIsEditingStatus] = useState(false);
   const [nameValue, setNameValue] = useState('');
   const [noteValue, setNoteValue] = useState('');
   const [formData, setFormData] = useState({
@@ -28,6 +27,8 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
     note: profile?.note || '',
   });
   const [loading, setLoading] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -45,6 +46,23 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
       setNoteValue(profile.note || '');
     }
   }, [profile]);
+
+  // ドロップダウンの外側をクリックした時に閉じる
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setShowStatusDropdown(false);
+      }
+    };
+
+    if (showStatusDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showStatusDropdown]);
 
   const handleSave = async (field?: 'name' | 'note' | 'status' | 'all') => {
     // 名前のバリデーション
@@ -176,7 +194,6 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
       setIsEditingName(false);
       setIsEditingNote(false);
       setIsEditingIcon(false);
-      setIsEditingStatus(false);
     } catch (error: any) {
       console.error('Save error:', error);
       const errorMessage = error.message || '不明なエラーが発生しました';
@@ -303,38 +320,66 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
 
               {/* 下段：ステータスボタンとノート */}
               <div className="flex items-center gap-3 flex-wrap">
-                {/* ステータスボタン（ドロップダウン） */}
-                {isEditingStatus ? (
-                  <select
-                    value={formData.status}
-                    onChange={(e) => {
-                      setFormData({ ...formData, status: e.target.value as UserStatus });
-                      handleSave('status');
-                    }}
-                    className={`px-3 py-1.5 rounded text-white font-medium border-0 focus:outline-none ${statusColors[formData.status]}`}
-                    autoFocus
-                    onBlur={() => setIsEditingStatus(false)}
-                  >
-                    <option value="available">対応可</option>
-                    <option value="unavailable">不可</option>
-                    <option value="emergency">緊急のみ</option>
-                  </select>
-                ) : (
+                {/* ステータスボタン（カスタムドロップダウン） */}
+                <div className="relative" ref={statusDropdownRef}>
                   <button
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      setIsEditingStatus(true);
-                    }}
-                    className={`px-3 py-1.5 rounded text-white font-medium flex items-center gap-2 ${statusColors[displayProfile.status || 'available']}`}
+                    onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                    className={`px-4 py-2.5 rounded text-white font-semibold text-base flex items-center gap-2.5 ${statusColors[displayProfile.status || 'available']} hover:opacity-90 transition-opacity`}
                     type="button"
                   >
-                    <span className="w-2 h-2 bg-white rounded-full"></span>
+                    <span className="w-2.5 h-2.5 bg-white rounded-full"></span>
                     <span>{statusLabels[displayProfile.status || 'available']}</span>
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg 
+                      className={`w-4 h-4 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                )}
+                  
+                  {showStatusDropdown && (
+                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[140px]">
+                      <button
+                        onClick={() => {
+                          setFormData({ ...formData, status: 'available' });
+                          handleSave('status');
+                          setShowStatusDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center gap-2.5 transition-colors first:rounded-t-lg"
+                        type="button"
+                      >
+                        <span className="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+                        <span>対応可</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFormData({ ...formData, status: 'unavailable' });
+                          handleSave('status');
+                          setShowStatusDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 flex items-center gap-2.5 transition-colors"
+                        type="button"
+                      >
+                        <span className="w-2.5 h-2.5 bg-gray-400 rounded-full"></span>
+                        <span>不可</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFormData({ ...formData, status: 'emergency' });
+                          handleSave('status');
+                          setShowStatusDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center gap-2.5 transition-colors last:rounded-b-lg"
+                        type="button"
+                      >
+                        <span className="w-2.5 h-2.5 bg-orange-500 rounded-full"></span>
+                        <span>緊急のみ</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 {/* ノート（編集可能） */}
                 {isEditingNote ? (
