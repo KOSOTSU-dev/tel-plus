@@ -82,7 +82,11 @@ export default function FriendListItem({
                 ● {statusLabels[status]}
               </button>
               <button
-                onClick={() => onTogglePin(friend)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTogglePin(friend);
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
                 className={`p-0.5 rounded hover:bg-gray-100 transition-colors ${friend.pinned ? 'text-yellow-500' : 'text-gray-400'}`}
                 title={friend.pinned ? 'ピン留め解除' : 'ピン留め'}
               >
@@ -91,7 +95,11 @@ export default function FriendListItem({
                 </svg>
               </button>
               <button
-                onClick={() => onDelete(friend.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(friend.id);
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
                 className="p-0.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-500 transition-colors"
                 title="削除"
               >
@@ -112,12 +120,18 @@ export default function FriendListItem({
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
                   onKeyDown={handleKeyDown}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
                   className="flex-1 px-2 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:border-green-500"
                   placeholder="メモを入力..."
                   autoFocus
                 />
                 <button
-                  onClick={handleSaveMemo}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSaveMemo();
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
                   className="p-1 rounded hover:bg-gray-100 text-green-600 transition-colors"
                   title="確定"
                 >
@@ -130,7 +144,11 @@ export default function FriendListItem({
               <div className="flex items-center gap-1">
                 <span className="text-xs text-gray-500">メモ</span>
                 <button
-                  onClick={() => setIsEditingMemo(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditingMemo(true);
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
                   className="p-0.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
                   title="メモを編集"
                 >

@@ -72,14 +72,16 @@ function SortableFriendItem({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <FriendListItem
-        friend={friend}
-        onDelete={onDelete}
-        onTogglePin={onTogglePin}
-        onUpdateMemo={onUpdateMemo}
-        isPinned={isPinned}
-      />
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <div {...(disabled ? {} : listeners)} className={disabled ? '' : 'cursor-grab active:cursor-grabbing'}>
+        <FriendListItem
+          friend={friend}
+          onDelete={onDelete}
+          onTogglePin={onTogglePin}
+          onUpdateMemo={onUpdateMemo}
+          isPinned={isPinned}
+        />
+      </div>
     </div>
   );
 }
@@ -89,7 +91,11 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -350,15 +356,15 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
             {pinnedFriends.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 rounded-lg p-1">
                 {pinnedFriends.map((friend) => (
-                  <SortableFriendItem
-                    key={friend.id}
-                    friend={friend}
-                    onDelete={handleDelete}
-                    onTogglePin={handleTogglePin}
-                    onUpdateMemo={handleUpdateMemo}
-                    isPinned={true}
-                    disabled={true}
-                  />
+                  <div key={friend.id}>
+                    <FriendListItem
+                      friend={friend}
+                      onDelete={handleDelete}
+                      onTogglePin={handleTogglePin}
+                      onUpdateMemo={handleUpdateMemo}
+                      isPinned={true}
+                    />
+                  </div>
                 ))}
               </div>
             )}
