@@ -469,7 +469,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
           </div>
 
           {/* プライバシー説明文と折りたたみボタン */}
-          <div className={`flex items-center justify-between ${isContactFieldsCollapsed ? 'mb-1' : 'mb-4'}`}>
+          <div className={`flex items-center justify-between ${isContactFieldsCollapsed ? 'mb-0' : 'mb-4'}`}>
             <div className="text-xs text-gray-500">
               入力した所属名・電話番号・メールはフレンドに公開されます。
             </div>
