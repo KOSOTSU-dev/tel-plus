@@ -171,8 +171,17 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
         localStorage.setItem('guest_friends', JSON.stringify(updatedFriends));
         onUpdate(updatedFriends);
       } else {
-        // 全ての更新されたフレンドを保存（サンプルフレンドを除く）
+        // サンプルフレンドと実際のフレンドを分離
+        const allSampleFriends = updatedFriends.filter(friend => friend.id.startsWith('sample'));
+        const sampleFriendsInList = updatedList.filter(friend => friend.id.startsWith('sample'));
         const realFriends = updatedList.filter(friend => !friend.id.startsWith('sample'));
+
+        // サンプルフレンドの状態をlocalStorageに保存（ピン留めされたものも含む）
+        if (allSampleFriends.length > 0) {
+          localStorage.setItem('sample_friends', JSON.stringify(allSampleFriends));
+        }
+
+        // 実際のフレンドをデータベースに保存
         if (realFriends.length > 0) {
           const updatePromises = realFriends.map(async (friend) => {
             const { error } = await createClient()
@@ -239,11 +248,16 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
         localStorage.setItem('guest_friends', JSON.stringify(updatedFriends));
         onUpdate(updatedFriends);
       } else {
-        // サンプルフレンドの場合は、クライアント側のみで更新
+        // サンプルフレンドの場合は、localStorageに保存
         if (friend.id.startsWith('sample')) {
           const updatedFriends = friends.map((f) =>
             f.id === friend.id ? { ...f, pinned: !f.pinned } : f
           );
+          // サンプルフレンドの状態をlocalStorageに保存
+          const sampleFriends = updatedFriends.filter(f => f.id.startsWith('sample'));
+          if (sampleFriends.length > 0) {
+            localStorage.setItem('sample_friends', JSON.stringify(sampleFriends));
+          }
           onUpdate(updatedFriends);
         } else {
           const newPinnedStatus = !friend.pinned;
@@ -286,11 +300,16 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
         localStorage.setItem('guest_friends', JSON.stringify(updatedFriends));
         onUpdate(updatedFriends);
       } else {
-        // サンプルフレンドの場合は、クライアント側のみで更新
+        // サンプルフレンドの場合は、localStorageに保存
         if (friendId.startsWith('sample')) {
           const updatedFriends = friends.map((f) =>
             f.id === friendId ? { ...f, memo } : f
           );
+          // サンプルフレンドの状態をlocalStorageに保存
+          const sampleFriends = updatedFriends.filter(f => f.id.startsWith('sample'));
+          if (sampleFriends.length > 0) {
+            localStorage.setItem('sample_friends', JSON.stringify(sampleFriends));
+          }
           onUpdate(updatedFriends);
         } else {
           const { error } = await createClient()

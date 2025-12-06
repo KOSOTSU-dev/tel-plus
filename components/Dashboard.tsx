@@ -180,6 +180,103 @@ export default function Dashboard() {
         console.error('フレンド一覧の取得に失敗しました:', friendsError);
       }
 
+      // サンプルフレンドの初期状態を定義
+      const defaultSampleFriends: Friend[] = [
+        {
+          id: 'sample1',
+          user_id: user.id,
+          friend_id: '00000000-0000-0000-0000-000000000001',
+          pinned: true,
+          order: 0,
+          memo: '',
+          created_at: new Date().toISOString(),
+          friend_profile: {
+            id: 'sample1',
+            user_id: '00000000-0000-0000-0000-000000000001',
+            username: 'tanaka',
+            nickname: '田中',
+            organization: 'サンプル',
+            phone: '',
+            public_email: '',
+            status: 'available',
+            note: '30分ご対応可能',
+            friend_code: 'TANAKA1',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        },
+        {
+          id: 'sample2',
+          user_id: user.id,
+          friend_id: '00000000-0000-0000-0000-000000000002',
+          pinned: false,
+          order: 1,
+          memo: '',
+          created_at: new Date().toISOString(),
+          friend_profile: {
+            id: 'sample2',
+            user_id: '00000000-0000-0000-0000-000000000002',
+            username: 'sato',
+            nickname: '佐藤',
+            organization: 'サンプル',
+            phone: '',
+            public_email: '',
+            status: 'unavailable',
+            note: '会議中',
+            friend_code: 'SATO001',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        },
+        {
+          id: 'sample3',
+          user_id: user.id,
+          friend_id: '00000000-0000-0000-0000-000000000003',
+          pinned: false,
+          order: 2,
+          memo: '',
+          created_at: new Date().toISOString(),
+          friend_profile: {
+            id: 'sample3',
+            user_id: '00000000-0000-0000-0000-000000000003',
+            username: 'suzuki',
+            nickname: '鈴木',
+            organization: 'サンプル',
+            phone: '',
+            public_email: '',
+            status: 'emergency',
+            note: '緊急のみ',
+            friend_code: 'SUZUKI1',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        },
+      ];
+
+      // localStorageから保存されたサンプルフレンドの状態を読み込む
+      const savedSampleFriends = localStorage.getItem('sample_friends');
+      let sampleFriends: Friend[] = defaultSampleFriends;
+      if (savedSampleFriends) {
+        try {
+          const parsed = JSON.parse(savedSampleFriends) as Friend[];
+          // デフォルトのサンプルフレンドを基準に、保存された状態をマージ
+          sampleFriends = defaultSampleFriends.map(defaultFriend => {
+            const saved = parsed.find(p => p.id === defaultFriend.id);
+            if (saved) {
+              return {
+                ...defaultFriend,
+                pinned: saved.pinned,
+                order: saved.order,
+                memo: saved.memo || '',
+              };
+            }
+            return defaultFriend;
+          });
+        } catch (e) {
+          console.error('サンプルフレンドの読み込みに失敗:', e);
+        }
+      }
+
       if (friendsData && friendsData.length > 0) {
         // friend_idのリストを取得
         const friendIds = friendsData.map(f => f.friend_id);
@@ -208,81 +305,19 @@ export default function Dashboard() {
           friend_profile: profilesMap.get(friend.friend_id),
         }));
 
-        setFriends(friendsWithProfiles);
+        // 実際のフレンドとサンプルフレンドを結合
+        // すべてのフレンドを結合してorderでソート
+        const allFriends = [...friendsWithProfiles, ...sampleFriends];
+        // orderでソート（ピン留めされていないフレンドはorder順、ピン留めされているフレンドは先頭）
+        allFriends.sort((a, b) => {
+          if (a.pinned && !b.pinned) return -1;
+          if (!a.pinned && b.pinned) return 1;
+          return (a.order ?? 0) - (b.order ?? 0);
+        });
+
+        setFriends(allFriends);
       } else {
-        // フレンドがいない場合は、クライアント側でサンプルフレンドを表示
-        // （データベースには保存されず、表示用のみ）
-        const sampleFriends: Friend[] = [
-          {
-            id: 'sample1',
-            user_id: user.id,
-            friend_id: '00000000-0000-0000-0000-000000000001',
-            pinned: true,
-            order: 0,
-            memo: '',
-            created_at: new Date().toISOString(),
-            friend_profile: {
-              id: 'sample1',
-              user_id: '00000000-0000-0000-0000-000000000001',
-              username: 'tanaka',
-              nickname: '田中',
-              organization: 'サンプル',
-              phone: '',
-              public_email: '',
-              status: 'available',
-              note: '30分ご対応可能',
-              friend_code: 'TANAKA1',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-          },
-          {
-            id: 'sample2',
-            user_id: user.id,
-            friend_id: '00000000-0000-0000-0000-000000000002',
-            pinned: false,
-            order: 1,
-            memo: '',
-            created_at: new Date().toISOString(),
-            friend_profile: {
-              id: 'sample2',
-              user_id: '00000000-0000-0000-0000-000000000002',
-              username: 'sato',
-              nickname: '佐藤',
-              organization: 'サンプル',
-              phone: '',
-              public_email: '',
-              status: 'unavailable',
-              note: '会議中',
-              friend_code: 'SATO001',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-          },
-          {
-            id: 'sample3',
-            user_id: user.id,
-            friend_id: '00000000-0000-0000-0000-000000000003',
-            pinned: false,
-            order: 2,
-            memo: '',
-            created_at: new Date().toISOString(),
-            friend_profile: {
-              id: 'sample3',
-              user_id: '00000000-0000-0000-0000-000000000003',
-              username: 'suzuki',
-              nickname: '鈴木',
-              organization: 'サンプル',
-              phone: '',
-              public_email: '',
-              status: 'emergency',
-              note: '緊急のみ',
-              friend_code: 'SUZUKI1',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-          },
-        ];
+        // フレンドがいない場合は、サンプルフレンドのみを表示
         setFriends(sampleFriends);
       }
 
