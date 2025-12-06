@@ -196,7 +196,29 @@ export default function FriendModal({ isOpen, onClose, profile }: FriendModalPro
   const handleAccept = async (request: FriendRequest) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        alert('ログインが必要です');
+        return;
+      }
+
+      // 既存のフレンド関係をチェック
+      const { data: existingFriend1 } = await supabase
+        .from('friends')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('friend_id', request.from_user_id)
+        .single();
+
+      if (existingFriend1) {
+        alert('既にフレンド関係が存在します');
+        // 申請は既に処理済みとして、申請をacceptedに更新して終了
+        await supabase
+          .from('friend_requests')
+          .update({ status: 'accepted' })
+          .eq('id', request.id);
+        loadRequests();
+        return;
+      }
 
       // 申請を承認
       const { error: updateError } = await supabase
@@ -204,7 +226,10 @@ export default function FriendModal({ isOpen, onClose, profile }: FriendModalPro
         .update({ status: 'accepted' })
         .eq('id', request.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('申請の更新エラー:', updateError);
+        throw updateError;
+      }
 
       // フレンド関係を双方向に作成
       const { data: friendsData } = await supabase
@@ -214,6 +239,7 @@ export default function FriendModal({ isOpen, onClose, profile }: FriendModalPro
 
       const maxOrder = friendsData?.reduce((max, f) => Math.max(max, f.order || 0), 0) || 0;
 
+      // 自分のフレンドリストに追加
       const { error: friend1Error } = await supabase.from('friends').insert({
         user_id: user.id,
         friend_id: request.from_user_id,
@@ -221,8 +247,17 @@ export default function FriendModal({ isOpen, onClose, profile }: FriendModalPro
         order: maxOrder + 1,
       });
 
-      if (friend1Error) throw friend1Error;
+      if (friend1Error) {
+        // 409 Conflictの場合は既に存在するため、スキップ
+        if (friend1Error.code === '23505') {
+          console.warn('既にフレンド関係が存在します（自分の側）');
+        } else {
+          console.error('フレンド関係の作成エラー（自分の側）:', friend1Error);
+          throw friend1Error;
+        }
+      }
 
+      // 相手のフレンドリストに追加
       const { data: friend2Data } = await supabase
         .from('friends')
         .select('*')
@@ -237,11 +272,29 @@ export default function FriendModal({ isOpen, onClose, profile }: FriendModalPro
         order: maxOrder2 + 1,
       });
 
-      if (friend2Error) throw friend2Error;
+      if (friend2Error) {
+        // 409 Conflictの場合は既に存在するため、スキップ
+        if (friend2Error.code === '23505') {
+          console.warn('既にフレンド関係が存在します（相手の側）');
+        } else {
+          console.error('フレンド関係の作成エラー（相手の側）:', friend2Error);
+          // 自分の側は作成済みなので、ロールバックは不要
+          // エラーメッセージだけ表示
+        }
+      }
 
+      setSuccess('フレンド申請を承認しました');
       loadRequests();
+      
+      // モーダルを閉じて、ダッシュボードを更新するために少し待ってからモーダルを閉じる
+      setTimeout(() => {
+        onClose();
+        // 親コンポーネントに通知するために、カスタムイベントを発火
+        window.dispatchEvent(new CustomEvent('friendUpdated'));
+      }, 1000);
     } catch (error: any) {
-      alert('承認に失敗しました: ' + error.message);
+      console.error('承認エラー:', error);
+      alert('承認に失敗しました: ' + (error.message || '不明なエラー'));
     }
   };
 
