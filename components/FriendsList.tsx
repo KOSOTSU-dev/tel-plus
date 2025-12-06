@@ -285,15 +285,11 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
 
             {/* ピン留めされていないフレンドリスト */}
             <Droppable droppableId="unpinned" isDropDisabled={unpinnedFriends.length === 0}>
-              {(provided, snapshot) => (
+              {(provided) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 ${unpinnedFriends.length === 0 ? 'hidden' : ''}`}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                  }}
                 >
                   {unpinnedFriends.map((friend, index) => (
                     <Draggable key={friend.id} draggableId={friend.id} index={index}>
@@ -305,7 +301,6 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
                           className={snapshot.isDragging ? 'opacity-50 z-50' : ''}
                           style={{
                             ...provided.draggableProps.style,
-                            transition: snapshot.isDragging ? 'none' : 'transform 0.2s ease',
                           }}
                         >
                           <FriendListItem
