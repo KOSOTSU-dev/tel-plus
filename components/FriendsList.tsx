@@ -178,48 +178,55 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
     // 他のリストとマージ
     const updatedFriends = [...pinnedFriends, ...updatedList];
 
-    // データベースに保存
-    try {
-      if (isGuest) {
-        localStorage.setItem('guest_friends', JSON.stringify(updatedFriends));
-        onUpdate(updatedFriends);
-      } else {
-        // サンプルフレンドと実際のフレンドを分離
-        const allSampleFriends = updatedFriends.filter(friend => friend.id.startsWith('sample'));
-        const sampleFriendsInList = updatedList.filter(friend => friend.id.startsWith('sample'));
-        const realFriends = updatedList.filter(friend => !friend.id.startsWith('sample'));
-
-        // サンプルフレンドの状態をlocalStorageに保存（ピン留めされたものも含む）
-        if (allSampleFriends.length > 0) {
-          localStorage.setItem('sample_friends', JSON.stringify(allSampleFriends));
-        }
-
-        // 実際のフレンドをデータベースに保存
-        if (realFriends.length > 0) {
-          const updatePromises = realFriends.map(async (friend) => {
-            const { error } = await createClient()
-              .from('friends')
-              .update({ order: friend.order })
-              .eq('id', friend.id);
-            
-            if (error) {
-              console.error(`フレンド ${friend.id} の更新に失敗:`, error);
-              throw error;
-            }
-            return friend;
-          });
-          
-          const results = await Promise.all(updatePromises);
-          console.log(`${results.length}件のフレンドの並び順を更新しました`);
-        }
-        onUpdate(updatedFriends);
-      }
-    } catch (error: any) {
-      console.error('並び順の更新に失敗しました:', error);
-      alert('並び順の更新に失敗しました: ' + error.message);
-    }
-
+    // まず即座にUIを更新して、もたつきを防ぐ
     setActiveId(null);
+
+    // 即座に状態を更新
+    if (isGuest) {
+      localStorage.setItem('guest_friends', JSON.stringify(updatedFriends));
+      onUpdate(updatedFriends);
+    } else {
+      // サンプルフレンドと実際のフレンドを分離
+      const allSampleFriends = updatedFriends.filter(friend => friend.id.startsWith('sample'));
+      const sampleFriendsInList = updatedList.filter(friend => friend.id.startsWith('sample'));
+      const realFriends = updatedList.filter(friend => !friend.id.startsWith('sample'));
+
+      // サンプルフレンドの状態をlocalStorageに保存（ピン留めされたものも含む）
+      if (allSampleFriends.length > 0) {
+        localStorage.setItem('sample_friends', JSON.stringify(allSampleFriends));
+      }
+
+      // 即座にUIを更新
+      onUpdate(updatedFriends);
+
+      // バックグラウンドでデータベースに保存
+      if (realFriends.length > 0) {
+        (async () => {
+          try {
+            const updatePromises = realFriends.map(async (friend) => {
+              const { error } = await createClient()
+                .from('friends')
+                .update({ order: friend.order })
+                .eq('id', friend.id);
+              
+              if (error) {
+                console.error(`フレンド ${friend.id} の更新に失敗:`, error);
+                throw error;
+              }
+              return friend;
+            });
+            
+            await Promise.all(updatePromises);
+            console.log(`${realFriends.length}件のフレンドの並び順を更新しました`);
+          } catch (error: any) {
+            console.error('並び順の更新に失敗しました:', error);
+            alert('並び順の更新に失敗しました: ' + error.message);
+            // エラーが発生した場合は、元の状態に戻すためデータを再読み込み
+            window.dispatchEvent(new Event('dashboard:refresh-friends'));
+          }
+        })();
+      }
+    }
   };
 
   const handleDelete = async (friendId: string) => {
