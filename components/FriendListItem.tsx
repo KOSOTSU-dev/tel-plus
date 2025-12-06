@@ -123,9 +123,9 @@ export default function FriendListItem({
               </button>
             </div>
           </div>
-          {note && (
-            <div className="text-xs text-gray-600 mt-0.5">{note}</div>
-          )}
+          <div className="text-xs text-gray-600 mt-0.5 min-h-[1rem]">
+            {note || '\u00A0'}
+          </div>
           <div className="mt-1">
             {isEditingMemo ? (
               <div className="flex items-center gap-1">
