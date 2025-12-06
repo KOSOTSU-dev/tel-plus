@@ -117,9 +117,9 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
     );
   });
 
-  // 並び順でソート
-  const pinnedFriends = filteredFriends.filter((f) => f.pinned).sort((a, b) => (a.order || 0) - (b.order || 0));
-  const unpinnedFriends = filteredFriends.filter((f) => !f.pinned).sort((a, b) => (a.order || 0) - (b.order || 0));
+  // 並び順でソート（orderがnullまたはundefinedの場合は0として扱う）
+  const pinnedFriends = filteredFriends.filter((f) => f.pinned).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const unpinnedFriends = filteredFriends.filter((f) => !f.pinned).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -171,17 +171,25 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
         localStorage.setItem('guest_friends', JSON.stringify(updatedFriends));
         onUpdate(updatedFriends);
       } else {
-        // 全ての更新されたフレンドを保存
-        const updatePromises = updatedList.map(async (friend) => {
-          if (!friend.id.startsWith('sample')) {
-            return createClient()
+        // 全ての更新されたフレンドを保存（サンプルフレンドを除く）
+        const realFriends = updatedList.filter(friend => !friend.id.startsWith('sample'));
+        if (realFriends.length > 0) {
+          const updatePromises = realFriends.map(async (friend) => {
+            const { error } = await createClient()
               .from('friends')
               .update({ order: friend.order })
               .eq('id', friend.id);
-          }
-          return Promise.resolve();
-        });
-        await Promise.all(updatePromises);
+            
+            if (error) {
+              console.error(`フレンド ${friend.id} の更新に失敗:`, error);
+              throw error;
+            }
+            return friend;
+          });
+          
+          const results = await Promise.all(updatePromises);
+          console.log(`${results.length}件のフレンドの並び順を更新しました`);
+        }
         onUpdate(updatedFriends);
       }
     } catch (error: any) {
@@ -238,20 +246,33 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
           );
           onUpdate(updatedFriends);
         } else {
-          const { error } = await createClient()
+          const newPinnedStatus = !friend.pinned;
+          
+          // ピン留め状態を更新
+          const { data, error } = await createClient()
             .from('friends')
-            .update({ pinned: !friend.pinned })
-            .eq('id', friend.id);
+            .update({ pinned: newPinnedStatus })
+            .eq('id', friend.id)
+            .select()
+            .single();
 
-          if (error) throw error;
+          if (error) {
+            console.error('ピン留めの更新に失敗:', error);
+            alert('ピン留めの更新に失敗しました: ' + error.message);
+            return;
+          }
 
+          console.log('ピン留めを更新しました:', data);
+
+          // ローカル状態を更新
           const updatedFriends = friends.map((f) =>
-            f.id === friend.id ? { ...f, pinned: !f.pinned } : f
+            f.id === friend.id ? { ...f, pinned: newPinnedStatus } : f
           );
           onUpdate(updatedFriends);
         }
       }
     } catch (error: any) {
+      console.error('ピン留めの更新エラー:', error);
       alert('ピン留めの更新に失敗しました: ' + error.message);
     }
   };
