@@ -497,7 +497,7 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
 
             <DragOverlay>
               {activeFriend ? (
-                <div style={{ opacity: 0.5, transform: 'rotate(5deg)' }}>
+                <div style={{ opacity: 0.5 }}>
                   <FriendListItem
                     friend={activeFriend}
                     onDelete={handleDelete}

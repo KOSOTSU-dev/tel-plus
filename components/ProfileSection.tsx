@@ -28,8 +28,17 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
   });
   const [loading, setLoading] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [isContactFieldsCollapsed, setIsContactFieldsCollapsed] = useState(false);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+
+  useEffect(() => {
+    // 折りたたみ状態をlocalStorageから読み込む
+    const savedCollapsedState = localStorage.getItem('profile_contact_fields_collapsed');
+    if (savedCollapsedState !== null) {
+      setIsContactFieldsCollapsed(savedCollapsedState === 'true');
+    }
+  }, []);
 
   useEffect(() => {
     if (profile) {
@@ -44,8 +53,26 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
       });
       setNameValue(profile.nickname || '');
       setNoteValue(profile.note || '');
+    } else if (!isGuest) {
+      // プロフィールが存在しない場合、ユーザーのメタデータからユーザー名を取得
+      const loadUserMetadata = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const userMetadata = user.user_metadata || {};
+          const usernameFromMetadata = userMetadata.username || '';
+          if (usernameFromMetadata) {
+            setFormData(prev => ({
+              ...prev,
+              nickname: usernameFromMetadata,
+              username: usernameFromMetadata,
+            }));
+            setNameValue(usernameFromMetadata);
+          }
+        }
+      };
+      loadUserMetadata();
     }
-  }, [profile]);
+  }, [profile, isGuest]);
 
   // ドロップダウンの外側をクリックした時に閉じる
   useEffect(() => {
@@ -120,6 +147,10 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
         if (!user) return;
 
         if (!profile) {
+          // ユーザーのメタデータからユーザー名を取得
+          const userMetadata = user.user_metadata || {};
+          const usernameFromMetadata = userMetadata.username || user.email?.split('@')[0] || '';
+          
           let friendCode = generateFriendCode();
           let attempts = 0;
           let data;
@@ -130,8 +161,8 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
               .from('profiles')
               .insert({
                 user_id: user.id,
-                username: dataToSave.username || user.email?.split('@')[0] || '',
-                nickname: dataToSave.nickname || '',
+                username: usernameFromMetadata,
+                nickname: dataToSave.nickname || usernameFromMetadata || '',
                 organization: dataToSave.organization,
                 phone: dataToSave.phone,
                 public_email: dataToSave.public_email,
@@ -437,12 +468,34 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
             </div>
           </div>
 
-          {/* プライバシー説明文 */}
-          <div className="text-xs text-gray-500 mb-4">
-            入力した所属名・電話番号・メールはフレンドに公開されます。
+          {/* プライバシー説明文と折りたたみボタン */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-xs text-gray-500">
+              入力した所属名・電話番号・メールはフレンドに公開されます。
+            </div>
+            <button
+              onClick={() => {
+                const newCollapsedState = !isContactFieldsCollapsed;
+                setIsContactFieldsCollapsed(newCollapsedState);
+                localStorage.setItem('profile_contact_fields_collapsed', String(newCollapsedState));
+              }}
+              className="text-gray-500 hover:text-gray-700 transition-colors p-1"
+              type="button"
+            >
+              {isContactFieldsCollapsed ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+              )}
+            </button>
           </div>
 
           {/* 入力フィールド（画面幅が広い場合は横並び3列） */}
+          {!isContactFieldsCollapsed && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             <div className="flex items-center gap-1.5">
               <label className="text-sm w-20 text-gray-700 flex-shrink-0">所属名</label>
@@ -478,6 +531,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
               />
             </div>
           </div>
+          )}
       </>
     </div>
   );
