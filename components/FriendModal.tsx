@@ -30,27 +30,65 @@ export default function FriendModal({ isOpen, onClose, profile }: FriendModalPro
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      // friend_requestsテーブルから取得
+      const { data: requestsData, error: requestsError } = await supabase
         .from('friend_requests')
-        .select(`
-          *,
-          from_profile:profiles!friend_requests_from_user_id_fkey(*),
-          to_profile:profiles!friend_requests_to_user_id_fkey(*)
-        `)
+        .select('*')
         .eq('to_user_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        if (error.code === 'PGRST205' || error.code === '42P01') {
+      if (requestsError) {
+        if (requestsError.code === 'PGRST205' || requestsError.code === '42P01') {
           console.warn('friend_requestsテーブルが存在しません。データベーススキーマを確認してください。');
           setRequests([]);
+          return;
         } else {
-          throw error;
+          throw requestsError;
         }
-      } else if (data) {
-        setRequests(data as FriendRequest[]);
       }
+
+      if (!requestsData || requestsData.length === 0) {
+        setRequests([]);
+        return;
+      }
+
+      // from_user_idとto_user_idのリストを取得
+      const userIds = [
+        ...new Set([
+          ...requestsData.map(r => r.from_user_id),
+          ...requestsData.map(r => r.to_user_id),
+        ])
+      ];
+
+      // 各user_idに対応するプロフィールを取得
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('user_id', userIds);
+
+      if (profilesError) {
+        console.error('プロフィールの取得に失敗しました:', profilesError);
+        setRequests([]);
+        return;
+      }
+
+      // プロフィールをマップに変換
+      const profilesMap = new Map<string, any>();
+      if (profilesData) {
+        profilesData.forEach(profile => {
+          profilesMap.set(profile.user_id, profile);
+        });
+      }
+
+      // フレンド申請データとプロフィールを結合
+      const requestsWithProfiles: FriendRequest[] = requestsData.map(request => ({
+        ...request,
+        from_profile: profilesMap.get(request.from_user_id),
+        to_profile: profilesMap.get(request.to_user_id),
+      }));
+
+      setRequests(requestsWithProfiles);
     } catch (error: any) {
       if (error.code !== 'PGRST205' && error.code !== '42P01') {
         console.error('フレンド申請の読み込みに失敗しました:', error);
