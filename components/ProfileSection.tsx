@@ -328,7 +328,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
                 <div className="relative" ref={statusDropdownRef}>
                   <button
                     onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                    className={`px-4 py-2.5 rounded text-white font-semibold text-base flex items-center gap-2.5 ${statusColors[displayProfile.status || 'available']} hover:opacity-90 transition-opacity`}
+                    className={`px-2 py-[0.3125rem] rounded text-white font-semibold text-base flex items-center gap-2.5 ${statusColors[displayProfile.status || 'available']} hover:opacity-90 transition-opacity`}
                     type="button"
                   >
                     <span className="w-2.5 h-2.5 bg-white rounded-full"></span>
