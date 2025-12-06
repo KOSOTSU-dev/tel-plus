@@ -64,7 +64,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
     };
   }, [showStatusDropdown]);
 
-  const handleSave = async (field?: 'name' | 'note' | 'status' | 'all') => {
+  const handleSave = async (field?: 'name' | 'note' | 'status' | 'all', newStatus?: UserStatus) => {
     // 名前のバリデーション
     if (field === 'name' || field === 'all') {
       const finalName = field === 'name' ? nameValue : formData.nickname;
@@ -84,6 +84,9 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
     if (field === 'note' && noteValue !== formData.note) {
       setFormData({ ...formData, note: noteValue });
     }
+    if (field === 'status' && newStatus) {
+      setFormData({ ...formData, status: newStatus });
+    }
 
     setLoading(true);
     try {
@@ -91,6 +94,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
         ...formData,
         ...(field === 'name' && { nickname: nameValue }),
         ...(field === 'note' && { note: noteValue }),
+        ...(field === 'status' && newStatus && { status: newStatus }),
       };
 
       if (isGuest) {
@@ -343,8 +347,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
                     <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[140px]">
                       <button
                         onClick={() => {
-                          setFormData({ ...formData, status: 'available' });
-                          handleSave('status');
+                          handleSave('status', 'available');
                           setShowStatusDropdown(false);
                         }}
                         className="w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center gap-2.5 transition-colors first:rounded-t-lg"
@@ -355,8 +358,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
                       </button>
                       <button
                         onClick={() => {
-                          setFormData({ ...formData, status: 'unavailable' });
-                          handleSave('status');
+                          handleSave('status', 'unavailable');
                           setShowStatusDropdown(false);
                         }}
                         className="w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 flex items-center gap-2.5 transition-colors"
@@ -367,8 +369,7 @@ export default function ProfileSection({ profile, isGuest, onUpdate }: ProfileSe
                       </button>
                       <button
                         onClick={() => {
-                          setFormData({ ...formData, status: 'emergency' });
-                          handleSave('status');
+                          handleSave('status', 'emergency');
                           setShowStatusDropdown(false);
                         }}
                         className="w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center gap-2.5 transition-colors last:rounded-b-lg"
