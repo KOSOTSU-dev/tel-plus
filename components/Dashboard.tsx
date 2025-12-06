@@ -7,6 +7,7 @@ import { Profile, Friend } from '@/types';
 import ProfileSection from './ProfileSection';
 import FriendsList from './FriendsList';
 import FriendModal from './FriendModal';
+import SettingsModal from './SettingsModal';
 import GuestFriendAdd from './GuestFriendAdd';
 import { GuestFriend } from '@/types';
 
@@ -16,23 +17,54 @@ export default function Dashboard() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFriendModalOpen, setIsFriendModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
     loadData();
+    if (!isGuest) {
+      loadPendingRequestCount();
+    }
 
     // フレンド更新イベントをリッスン
     const handleFriendUpdated = () => {
       loadData();
+      if (!isGuest) {
+        loadPendingRequestCount();
+      }
     };
 
     window.addEventListener('friendUpdated', handleFriendUpdated);
 
+    // フレンド申請のリアルタイム更新
+    if (!isGuest) {
+      const channel = supabase
+        .channel('friend_requests_notification')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'friend_requests',
+          },
+          () => {
+            loadPendingRequestCount();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        window.removeEventListener('friendUpdated', handleFriendUpdated);
+        supabase.removeChannel(channel);
+      };
+    }
+
     return () => {
       window.removeEventListener('friendUpdated', handleFriendUpdated);
     };
-  }, []);
+  }, [isGuest]);
 
   const loadData = async () => {
     const guestMode = localStorage.getItem('guest_mode') === 'true';
@@ -325,6 +357,30 @@ export default function Dashboard() {
     }
   };
 
+  const loadPendingRequestCount = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { count, error } = await supabase
+        .from('friend_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('to_user_id', user.id)
+        .eq('status', 'pending');
+
+      if (error) {
+        if (error.code !== 'PGRST205' && error.code !== '42P01') {
+          console.error('フレンド申請数の取得に失敗しました:', error);
+        }
+        return;
+      }
+
+      setPendingRequestCount(count || 0);
+    } catch (error) {
+      console.error('フレンド申請数の取得に失敗しました:', error);
+    }
+  };
+
   const handleLogout = async () => {
     if (isGuest) {
       localStorage.removeItem('guest_mode');
@@ -400,7 +456,7 @@ export default function Dashboard() {
             {!isGuest && (
               <button 
                 onClick={() => setIsFriendModalOpen(true)}
-                className="flex items-center gap-1 text-sm hover:underline"
+                className="flex items-center gap-1 text-sm hover:underline relative"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -409,9 +465,17 @@ export default function Dashboard() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 <span>+フレンド</span>
+                {pendingRequestCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {pendingRequestCount > 9 ? '9+' : pendingRequestCount}
+                  </span>
+                )}
               </button>
             )}
-            <button className="flex items-center gap-1 text-sm hover:underline">
+            <button 
+              onClick={() => setIsSettingsModalOpen(true)}
+              className="flex items-center gap-1 text-sm hover:underline"
+            >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -455,8 +519,19 @@ export default function Dashboard() {
       {!isGuest && (
         <FriendModal
           isOpen={isFriendModalOpen}
-          onClose={() => setIsFriendModalOpen(false)}
+          onClose={() => {
+            setIsFriendModalOpen(false);
+            loadPendingRequestCount();
+          }}
           profile={profile}
+        />
+      )}
+
+      {/* 設定モーダル */}
+      {!isGuest && (
+        <SettingsModal
+          isOpen={isSettingsModalOpen}
+          onClose={() => setIsSettingsModalOpen(false)}
         />
       )}
     </div>

@@ -23,6 +23,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { createClient } from '@/lib/supabase/client';
 import { Friend, UserStatus } from '@/types';
 import FriendListItem from './FriendListItem';
+import FriendDetailModal from './FriendDetailModal';
 
 interface FriendsListProps {
   friends: Friend[];
@@ -41,6 +42,7 @@ interface SortableFriendItemProps {
   onDelete: (friendId: string) => void;
   onTogglePin: (friend: Friend) => void;
   onUpdateMemo: (friendId: string, memo: string) => void;
+  onOpenDetail?: (friend: Friend) => void;
   isPinned: boolean;
   disabled?: boolean;
 }
@@ -50,6 +52,7 @@ function SortableFriendItem({
   onDelete,
   onTogglePin,
   onUpdateMemo,
+  onOpenDetail,
   isPinned,
   disabled = false,
 }: SortableFriendItemProps) {
@@ -79,6 +82,7 @@ function SortableFriendItem({
           onDelete={onDelete}
           onTogglePin={onTogglePin}
           onUpdateMemo={onUpdateMemo}
+          onOpenDetail={onOpenDetail}
           isPinned={isPinned}
         />
       </div>
@@ -90,6 +94,8 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<UserStatus | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -446,6 +452,10 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
                       onDelete={handleDelete}
                       onTogglePin={handleTogglePin}
                       onUpdateMemo={handleUpdateMemo}
+                      onOpenDetail={(friend) => {
+                        setSelectedFriend(friend);
+                        setIsDetailModalOpen(true);
+                      }}
                       isPinned={true}
                     />
                   </div>
@@ -467,6 +477,10 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
                       onDelete={handleDelete}
                       onTogglePin={handleTogglePin}
                       onUpdateMemo={handleUpdateMemo}
+                      onOpenDetail={(friend) => {
+                        setSelectedFriend(friend);
+                        setIsDetailModalOpen(true);
+                      }}
                       isPinned={false}
                     />
                   ))}
@@ -490,6 +504,16 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
           </div>
         </DndContext>
       )}
+
+      {/* フレンド詳細モーダル */}
+      <FriendDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedFriend(null);
+        }}
+        friend={selectedFriend}
+      />
     </div>
   );
 }
