@@ -88,6 +88,7 @@ function SortableFriendItem({
 
 export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<UserStatus | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -101,13 +102,19 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
     })
   );
 
-  // 検索フィルタリング（名前またはステータスで検索）
+  // 検索フィルタリング（名前またはステータスで検索）とステータスフィルター
   const filteredFriends = friends.filter((friend) => {
     const profile = friend.friend_profile || friend;
     const nickname = 'nickname' in profile ? profile.nickname || '' : '';
     const status = 'status' in profile ? profile.status || 'available' : 'available';
     const statusLabel = statusLabels[status];
     
+    // ステータスフィルターの適用
+    if (selectedStatusFilter && status !== selectedStatusFilter) {
+      return false;
+    }
+    
+    // 検索クエリの適用
     if (!searchQuery.trim()) return true;
     
     const query = searchQuery.toLowerCase();
@@ -379,7 +386,44 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
             {(pinnedFriends.length > 0 || unpinnedFriends.length > 0) && (
               <div className="space-y-1 mb-1.5">
                 {unpinnedFriends.length > 0 && (
-                  <h3 className="text-sm font-medium text-gray-700">フレンド</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-gray-700">フレンド</h3>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'available' ? null : 'available')}
+                        className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                          selectedStatusFilter === 'available'
+                            ? 'bg-green-500 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                        type="button"
+                      >
+                        対応可
+                      </button>
+                      <button
+                        onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'unavailable' ? null : 'unavailable')}
+                        className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                          selectedStatusFilter === 'unavailable'
+                            ? 'bg-gray-400 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                        type="button"
+                      >
+                        不可
+                      </button>
+                      <button
+                        onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'emergency' ? null : 'emergency')}
+                        className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                          selectedStatusFilter === 'emergency'
+                            ? 'bg-orange-500 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                        type="button"
+                      >
+                        緊急のみ
+                      </button>
+                    </div>
+                  </div>
                 )}
                 {pinnedFriends.length > 0 && (
                   <h3 className="text-sm font-medium text-gray-700 flex items-center gap-2">
