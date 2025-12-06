@@ -255,7 +255,7 @@ export default function FriendsList({ friends, isGuest, onUpdate }: FriendsListP
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 border border-yellow-200 rounded-lg p-1 ${pinnedFriends.length === 0 ? 'hidden' : ''}`}
+                  className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 rounded-lg p-1 ${pinnedFriends.length === 0 ? 'hidden' : ''}`}
                 >
                   {pinnedFriends.map((friend, index) => (
                     <Draggable key={friend.id} draggableId={friend.id} index={index} isDragDisabled={true}>
