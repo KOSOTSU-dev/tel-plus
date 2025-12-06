@@ -160,10 +160,7 @@ export default function Dashboard() {
       // フレンド一覧取得
       const { data: friendsData, error: friendsError } = await supabase
         .from('friends')
-        .select(`
-          *,
-          friend_profile:profiles!friends_friend_id_fkey(*)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('pinned', { ascending: false })
         .order('order', { ascending: true });
@@ -173,7 +170,34 @@ export default function Dashboard() {
       }
 
       if (friendsData && friendsData.length > 0) {
-        setFriends(friendsData as Friend[]);
+        // friend_idのリストを取得
+        const friendIds = friendsData.map(f => f.friend_id);
+        
+        // 各friend_idに対応するプロフィールを取得
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('user_id', friendIds);
+
+        if (profilesError) {
+          console.error('プロフィールの取得に失敗しました:', profilesError);
+        }
+
+        // プロフィールをマップに変換して結合
+        const profilesMap = new Map<string, Profile>();
+        if (profilesData) {
+          profilesData.forEach(profile => {
+            profilesMap.set(profile.user_id, profile);
+          });
+        }
+
+        // フレンドデータとプロフィールを結合
+        const friendsWithProfiles: Friend[] = friendsData.map(friend => ({
+          ...friend,
+          friend_profile: profilesMap.get(friend.friend_id),
+        }));
+
+        setFriends(friendsWithProfiles);
       } else {
         // フレンドがいない場合は、クライアント側でサンプルフレンドを表示
         // （データベースには保存されず、表示用のみ）
